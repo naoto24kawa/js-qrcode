@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコードライブラリ デモ - @elchika-inc/js-qrcode</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        select, 
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, 
+        input[type="number"]:focus, 
+        select:focus, 
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        #video {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 3px solid #34495e;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            min-height: 50px;
+            border-left: 4px solid #3498db;
+        }
+
+        .result-box.error {
+            background: #ffeaea;
+            border-left-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .result-box.success {
+            background: #eafaf1;
+            border-left-color: #27ae60;
+            color: #27ae60;
+        }
+
+        .qr-output {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
+
+        .qr-output svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.inactive {
+            background: #bdc3c7;
+        }
+
+        .status-indicator.active {
+            background: #27ae60;
+        }
+
+        .status-indicator.error {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .camera-controls {
+                justify-content: center;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+
+        .copy-button {
+            background: #95a5a6;
+            font-size: 12px;
+            padding: 6px 12px;
+            margin-left: 10px;
+        }
+
+        .copy-button:hover:not(:disabled) {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>QRコードライブラリ デモ</h1>
+    <p class="subtitle">@elchika-inc/js-qrcode - 動作確認用デモページ</p>
+
+    <div class="container">
+        <!-- QRコード生成セクション -->
+        <div class="section">
+            <h2>📝 QRコード生成</h2>
+            
+            <div class="form-group">
+                <label for="textInput">エンコードするテキスト:</label>
+                <textarea id="textInput" placeholder="QRコードにエンコードしたいテキストを入力してください" rows="3">Hello, QR World!</textarea>
+            </div>
+
+            <div class="options-grid">
+                <div class="form-group">
+                    <label for="sizeInput">サイズ (px):</label>
+                    <input type="number" id="sizeInput" value="300" min="100" max="800" step="50">
+                </div>
+
+                <div class="form-group">
+                    <label for="marginInput">マージン (%):</label>
+                    <input type="number" id="marginInput" value="4" min="0" max="20" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="errorLevel">エラー訂正レベル:</label>
+                    <select id="errorLevel">
+                        <option value="L" selected>L (低) - 7%</option>
+                        <option value="M">M (中) - 15%</option>
+                        <option value="Q">Q (中高) - 25%</option>
+                        <option value="H">H (高) - 30%</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="darkColor">前景色:</label>
+                    <input type="color" id="darkColor" value="#000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="lightColor">背景色:</label>
+                    <input type="color" id="lightColor" value="#ffffff">
+                </div>
+            </div>
+
+            <button onclick="generateQR()">QRコード生成</button>
+            <button onclick="downloadQR()" id="downloadBtn" disabled>SVGダウンロード</button>
+
+            <div id="qrOutput" class="qr-output">
+                <p>上のボタンを押してQRコードを生成してください</p>
+            </div>
+        </div>
+
+        <!-- QRコード読み取りセクション -->
+        <div class="section">
+            <h2>📱 QRコード読み取り</h2>
+            
+            <div class="camera-controls">
+                <button id="startBtn" class="btn-success">
+                    <span class="status-indicator inactive" id="cameraStatus"></span>
+                    カメラ開始
+                </button>
+                <button id="stopBtn" class="btn-danger" disabled>カメラ停止</button>
+            </div>
+
+            <video id="video" autoplay muted playsinline></video>
+
+            <div id="scanResult" class="result-box">
+                <strong>読み取り結果:</strong>
+                <div id="resultText">QRコードが検出されていません</div>
+            </div>
+
+            <h3>📎 ファイルから読み取り</h3>
+            <div class="form-group">
+                <label for="fileInput">画像ファイルを選択:</label>
+                <input type="file" id="fileInput" accept="image/*" onchange="decodeFromFile()">
+            </div>
+
+            <div id="fileResult" class="result-box">
+                <strong>ファイル読み取り結果:</strong>
+                <div id="fileResultText">ファイルが選択されていません</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dist/js-qrcode.js"></script>
+    <script>
+        // デバッグ用
+        console.log('QRCode object:', window.QRCode);
+        console.log('QRCode keys:', Object.keys(window.QRCode || {}));
+        
+        // UMDビルドからQRCodeオブジェクトを正しく取得
+        const QRCodeLib = window.QRCode?.QRCode || window.QRCode?.default || window.QRCode;
+        console.log('QRCodeLib:', QRCodeLib);
+        console.log('QRCodeLib.generate:', QRCodeLib?.generate);
+        
+        let scanner;
+        let currentSVG = '';
+        
+        // 要素の取得
+        const elements = {
+            startBtn: document.getElementById('startBtn'),
+            stopBtn: document.getElementById('stopBtn'),
+            video: document.getElementById('video'),
+            resultText: document.getElementById('resultText'),
+            scanResult: document.getElementById('scanResult'),
+            cameraStatus: document.getElementById('cameraStatus'),
+            fileResultText: document.getElementById('fileResultText'),
+            fileResult: document.getElementById('fileResult'),
+            downloadBtn: document.getElementById('downloadBtn')
+        };
+
+        // QRコード生成
+        function generateQR() {
+            const text = document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert('テキストを入力してください');
+                return;
+            }
+
+            try {
+                const options = {
+                    size: parseInt(document.getElementById('sizeInput').value),
+                    margin: parseInt(document.getElementById('marginInput').value),
+                    errorCorrectionLevel: document.getElementById('errorLevel').value,
+                    color: {
+                        dark: document.getElementById('darkColor').value,
+                        light: document.getElementById('lightColor').value
+                    }
+                };
+
+                currentSVG = QRCodeLib.generate(text, options);
+                document.getElementById('qrOutput').innerHTML = currentSVG;
+                elements.downloadBtn.disabled = false;
+
+                // 生成情報を表示
+                console.log('QRコード生成成功:', { text, options });
+            } catch (error) {
+                console.error('QRコード生成エラー:', error);
+                document.getElementById('qrOutput').innerHTML = `<p style="color: red;">エラー: ${error.message}</p>`;
+                elements.downloadBtn.disabled = true;
+            }
+        }
+
+        // SVGダウンロード
+        function downloadQR() {
+            if (!currentSVG) return;
+
+            const blob = new Blob([currentSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `qrcode_${Date.now()}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // カメラ開始
+        elements.startBtn.addEventListener('click', async () => {
+            try {
+                scanner = new QRCodeLib.Scanner({
+                    video: elements.video,
+                    continuous: true
+                });
+
+                scanner.addEventListener('decode', (event) => {
+                    elements.resultText.innerHTML = `
+                        ${event.detail.data}
+                        <button class="copy-button" onclick="copyToClipboard('${event.detail.data.replace(/'/g, "\\'")}')">コピー</button>
+                    `;
+                    elements.scanResult.className = 'result-box success';
+                    console.log('QRコード読み取り成功:', event.detail.data);
+                });
+
+                scanner.addEventListener('error', (event) => {
+                    elements.resultText.textContent = `エラー: ${event.detail.error.message}`;
+                    elements.scanResult.className = 'result-box error';
+                    console.error('スキャンエラー:', event.detail.error);
+                });
+
+                await scanner.start();
+
+                elements.startBtn.disabled = true;
+                elements.stopBtn.disabled = false;
+                elements.cameraStatus.className = 'status-indicator active';
+                elements.resultText.textContent = 'カメラが開始されました。QRコードをカメラに向けてください。';
+                elements.scanResult.className = 'result-box';
+
+            } catch (error) {
+                elements.resultText.textContent = `エラー: ${error.message}`;
+                elements.scanResult.className = 'result-box error';
+                elements.cameraStatus.className = 'status-indicator error';
+                console.error('カメラ開始エラー:', error);
+            }
+        });
+
+        // カメラ停止
+        elements.stopBtn.addEventListener('click', () => {
+            if (scanner) {
+                scanner.stop();
+                scanner = null;
+            }
+
+            elements.startBtn.disabled = false;
+            elements.stopBtn.disabled = true;
+            elements.cameraStatus.className = 'status-indicator inactive';
+            elements.resultText.textContent = 'カメラが停止されました';
+            elements.scanResult.className = 'result-box';
+        });
+
+        // ファイルから読み取り
+        async function decodeFromFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                elements.fileResultText.textContent = 'ファイルが選択されていません';
+                elements.fileResult.className = 'result-box';
+                return;
+            }
+
+            try {
+                elements.fileResultText.textContent = '読み取り中...';
+                elements.fileResult.className = 'result-box';
+
+                const dataUrl = await fileToDataUrl(file);
+                const result = await QRCodeLib.decode(dataUrl);
+
+                if (result) {
+                    elements.fileResultText.innerHTML = `
+                        ${result}
+                        <button class="copy-button" onclick="copyToClipboard('${result.replace(/'/g, "\\'")}')">コピー</button>
+                    `;
+                    elements.fileResult.className = 'result-box success';
+                    console.log('ファイル読み取り成功:', result);
+                } else {
+                    elements.fileResultText.textContent = 'QRコードが検出されませんでした';
+                    elements.fileResult.className = 'result-box error';
+                }
+            } catch (error) {
+                elements.fileResultText.textContent = `エラー: ${error.message}`;
+                elements.fileResult.className = 'result-box error';
+                console.error('ファイル読み取りエラー:', error);
+            }
+        }
+
+        // ユーティリティ関数
+        function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('クリップボードにコピーしました');
+            }).catch(err => {
+                console.error('コピーに失敗しました:', err);
+                // フォールバック
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('クリップボードにコピーしました');
+            });
+        }
+
+        // 初期化時の処理
+        document.addEventListener('DOMContentLoaded', () => {
+            // サンプルテキストでQRコードを生成
+            generateQR();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+import { QR_MODES, ALPHANUMERIC_CHARS, CAPACITY_TABLE } from './constants.js';
+
+export class QRDataEncoder {
+  detectMode(data) {
+    if (/^[0-9]+$/.test(data)) {
+      return QR_MODES.NUMERIC;
+    } else if (this.isAlphanumeric(data)) {
+      return QR_MODES.ALPHANUMERIC;
+    }
+    return QR_MODES.BYTE;
+  }
+
+  isAlphanumeric(data) {
+    return [...data].every(char => ALPHANUMERIC_CHARS.includes(char));
+  }
+
+  determineVersion(data, mode, errorCorrectionLevel) {
+    // For byte mode, use UTF-8 byte count, not character count
+    let length = data.length;
+    if (mode === QR_MODES.BYTE) {
+      length = this.stringToUtf8Bytes(data).length;
+    }
+    
+    const modeIndex = this.getModeIndex(mode);
+    
+    for (let version = 1; version <= 10; version++) {
+      const capacity = CAPACITY_TABLE[version]?.[errorCorrectionLevel]?.[modeIndex];
+      if (capacity && length <= capacity) {
+        return version;
+      }
+    }
+    
+    return Math.min(10, Math.ceil(length / 30));
+  }
+
+  getModeIndex(mode) {
+    switch (mode) {
+      case QR_MODES.NUMERIC: return 0;
+      case QR_MODES.ALPHANUMERIC: return 1;
+      case QR_MODES.BYTE: return 2;
+      default: return 2;
+    }
+  }
+
+  encode(data, mode, version) {
+    let bits = this.padLeft(mode.toString(2), 4);
+    
+    const lengthBits = this.getCharacterCountLength(mode, version);
+    
+    // For byte mode, use UTF-8 byte count, not character count
+    let dataLength = data.length;
+    if (mode === QR_MODES.BYTE) {
+      dataLength = this.stringToUtf8Bytes(data).length;
+    }
+    
+    bits += this.padLeft(dataLength.toString(2), lengthBits);
+    bits += this.encodeByMode(data, mode);
+    
+    return bits;
+  }
+
+  encodeToBytes(data, mode, version, errorCorrectionLevel) {
+    let bits = this.encode(data, mode, version);
+    
+    // Get required data capacity for this version/error level
+    const requiredDataCodewords = this.getDataCodewordsCount(version, errorCorrectionLevel);
+    const requiredBits = requiredDataCodewords * 8;
+    
+    // Add terminator (0000) - up to 4 bits
+    const terminatorLength = Math.min(4, requiredBits - bits.length);
+    bits += '0'.repeat(terminatorLength);
+    
+    // Pad to byte boundary
+    while (bits.length % 8 !== 0 && bits.length < requiredBits) {
+      bits += '0';
+    }
+    
+    // Add pad codewords (236, 17) alternating
+    const padCodewords = [236, 17];
+    let padIndex = 0;
+    while (bits.length < requiredBits) {
+      const padByte = padCodewords[padIndex % 2].toString(2).padStart(8, '0');
+      bits += padByte;
+      padIndex++;
+    }
+    
+    // Trim to exact required length
+    bits = bits.substring(0, requiredBits);
+    
+    // Convert bits to bytes
+    const bytes = this.bitsToBytes(bits);
+    
+    return bytes;
+  }
+
+  bitsToBytes(bits) {
+    const bytes = [];
+    
+    // Pad to byte boundary
+    while (bits.length % 8 !== 0) {
+      bits += '0';
+    }
+    
+    // Convert 8-bit groups to bytes
+    for (let i = 0; i < bits.length; i += 8) {
+      const byte = parseInt(bits.substr(i, 8), 2);
+      bytes.push(byte);
+    }
+    
+    return bytes;
+  }
+
+  encodeByMode(data, mode) {
+    switch (mode) {
+      case QR_MODES.NUMERIC:
+        return this.encodeNumeric(data);
+      case QR_MODES.ALPHANUMERIC:
+        return this.encodeAlphanumeric(data);
+      default:
+        return this.encodeByte(data);
+    }
+  }
+
+  getCharacterCountLength(mode, version) {
+    if (mode === QR_MODES.NUMERIC) {
+      return version <= 9 ? 10 : version <= 26 ? 12 : 14;
+    } else if (mode === QR_MODES.ALPHANUMERIC) {
+      return version <= 9 ? 9 : version <= 26 ? 11 : 13;
+    }
+    return version <= 9 ? 8 : 16;
+  }
+
+  encodeNumeric(data) {
+    let bits = '';
+    for (let i = 0; i < data.length; i += 3) {
+      const group = data.slice(i, i + 3);
+      const value = parseInt(group, 10);
+      const bitLength = group.length === 3 ? 10 : group.length === 2 ? 7 : 4;
+      bits += this.padLeft(value.toString(2), bitLength);
+    }
+    return bits;
+  }
+
+  encodeAlphanumeric(data) {
+    let bits = '';
+    for (let i = 0; i < data.length; i += 2) {
+      if (i + 1 < data.length) {
+        const val1 = ALPHANUMERIC_CHARS.indexOf(data[i]);
+        const val2 = ALPHANUMERIC_CHARS.indexOf(data[i + 1]);
+        const value = val1 * 45 + val2;
+        bits += this.padLeft(value.toString(2), 11);
+      } else {
+        const value = ALPHANUMERIC_CHARS.indexOf(data[i]);
+        bits += this.padLeft(value.toString(2), 6);
+      }
+    }
+    return bits;
+  }
+
+  encodeByte(data) {
+    // Convert string to UTF-8 bytes (not UTF-16 code units)
+    const utf8Bytes = this.stringToUtf8Bytes(data);
+    let bits = '';
+    
+    for (const byte of utf8Bytes) {
+      bits += this.padLeft(byte.toString(2), 8);
+    }
+    return bits;
+  }
+
+  /**
+   * Convert string to UTF-8 byte array
+   * This is critical for international character support in QR codes
+   */
+  stringToUtf8Bytes(str) {
+    const bytes = [];
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      
+      if (code < 0x80) {
+        // ASCII - single byte
+        bytes.push(code);
+      } else if (code < 0x800) {
+        // 2-byte UTF-8
+        bytes.push(0xC0 | (code >> 6));
+        bytes.push(0x80 | (code & 0x3F));
+      } else if (code < 0xD800 || code >= 0xE000) {
+        // 3-byte UTF-8 (not surrogate pair)
+        bytes.push(0xE0 | (code >> 12));
+        bytes.push(0x80 | ((code >> 6) & 0x3F));
+        bytes.push(0x80 | (code & 0x3F));
+      } else {
+        // Surrogate pair - 4-byte UTF-8
+        if (i + 1 < str.length) {
+          const high = code;
+          const low = str.charCodeAt(++i);
+          const codepoint = 0x10000 + ((high & 0x3FF) << 10) + (low & 0x3FF);
+          
+          bytes.push(0xF0 | (codepoint >> 18));
+          bytes.push(0x80 | ((codepoint >> 12) & 0x3F));
+          bytes.push(0x80 | ((codepoint >> 6) & 0x3F));
+          bytes.push(0x80 | (codepoint & 0x3F));
+        }
+      }
+    }
+    return bytes;
+  }
+
+  padLeft(str, length) {
+    return str.padStart(length, '0');
+  }
+
+  getDataCodewordsCount(version, errorCorrectionLevel) {
+    // QR Code specification data capacity table
+    const dataCapacity = {
+      1: { L: 19, M: 16, Q: 13, H: 9 },
+      2: { L: 34, M: 28, Q: 22, H: 16 },
+      3: { L: 55, M: 44, Q: 34, H: 26 },
+      4: { L: 80, M: 64, Q: 48, H: 36 },
+      5: { L: 108, M: 86, Q: 62, H: 46 }
+    };
+    
+    return dataCapacity[version]?.[errorCorrectionLevel] || 16;
+  }
+}
