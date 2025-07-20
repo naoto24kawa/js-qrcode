@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-QRCode デモ</title>
+    <title>JS-QRCode ローカルデモ</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -161,11 +161,23 @@
                 grid-template-columns: 1fr;
             }
         }
+        .server-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔲 JS-QRCode デモページ</h1>
+        <h1>🔲 JS-QRCode ローカルデモ</h1>
+        
+        <div class="server-notice">
+            <strong>⚠️ ローカル開発用:</strong> このページはローカル開発用です。ローカルサーバー（例：<code>npx serve .</code>や<code>python -m http.server</code>）で起動してください。ファイルプロトコル（file://）では正常に動作しない場合があります。
+        </div>
         
         <div class="info">
             <strong>ℹ️ 情報:</strong> このデモページでは、純粋なJavaScriptで実装されたQRコードライブラリの機能を試すことができます。Workers環境やSSRでの使用に最適化されています。
@@ -250,10 +262,15 @@
         <!-- API使用例セクション -->
         <div class="section">
             <h2>💻 API使用例</h2>
-            <pre><code>// QRコード生成
-import QRCode from './dist/js-qrcode.js';
+            <h3>ES Modules (推奨)</h3>
+            <pre><code>// ローカル開発
+import QRCode from './src/index.js';
 
-const qrCode = QRCode.generate('Hello, World!', {
+// 本番環境
+import QRCode from './dist/js-qrcode.esm.js';
+
+// QRコード生成
+const svg = QRCode.generate('Hello, World!', {
     errorCorrectionLevel: 'M',
     margin: 4,
     moduleSize: 4,
@@ -262,30 +279,40 @@ const qrCode = QRCode.generate('Hello, World!', {
 
 // QRコード読み取り
 const result = await QRCode.decode(imageData);
-console.log(result.data);
+console.log(result.data);</code></pre>
 
-// カメラスキャン
-const scanner = new QRCode.Scanner(videoElement);
-scanner.start();</code></pre>
+            <h3>UMD（ブラウザ直接読み込み）</h3>
+            <pre><code>&lt;script src="./dist/js-qrcode.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const qrCode = QRCode.generate('Hello, World!');
+  document.body.innerHTML = qrCode;
+&lt;/script&gt;</code></pre>
+
+            <h3>ローカル開発サーバー起動方法</h3>
+            <pre><code># Node.js serve パッケージを使用
+npm install -g serve
+serve .
+
+# Python 3 内蔵サーバー
+python -m http.server 8000
+
+# Python 2 内蔵サーバー
+python -m SimpleHTTPServer 8000
+
+# PHP 内蔵サーバー
+php -S localhost:8000</code></pre>
         </div>
     </div>
 
-    <script type="module">
-        // ライブラリの読み込み
-        import QRCode from './dist/js-qrcode.js';
-        
+    <script>
+        // 簡易的なQRコード生成機能（開発用）
         let currentQRSVG = null;
         let stream = null;
         let scanner = null;
 
-        // QRコード生成関数
+        // QRコード生成関数（フォールバック実装）
         window.generateQR = function() {
             const text = document.getElementById('inputText').value;
-            const errorCorrectionLevel = document.getElementById('errorCorrectionLevel').value;
-            const margin = parseInt(document.getElementById('margin').value);
-            const moduleSize = parseInt(document.getElementById('moduleSize').value);
-            const color = document.getElementById('color').value;
-            
             const resultDiv = document.getElementById('qrResult');
             
             if (!text.trim()) {
@@ -293,34 +320,71 @@ scanner.start();</code></pre>
                 return;
             }
 
+            // ローカルライブラリ読み込みの確認
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <p><strong>🔧 開発モード:</strong></p>
+                    <p>ライブラリの読み込みテスト中...</p>
+                    <p><strong>入力テキスト:</strong> ${text}</p>
+                    <p><strong>ローカルサーバーで起動してES Modulesを有効にしてください</strong></p>
+                </div>
+                <div style="text-align: center; margin: 20px;">
+                    <div style="width: 200px; height: 200px; border: 2px dashed #ccc; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px;">
+                        <span style="color: #666;">QRコード<br/>プレースホルダー</span>
+                    </div>
+                </div>
+            `;
+
+            // 実際のライブラリが利用可能な場合の処理は、ES Module読み込み後に実行される
+            loadLibraryAndGenerate(text);
+        };
+
+        // ライブラリの動的読み込み試行
+        async function loadLibraryAndGenerate(text) {
             try {
+                // 開発環境用のパス
+                const { default: QRCode } = await import('./src/index.js');
+                
                 const options = {
-                    errorCorrectionLevel,
-                    margin,
+                    errorCorrectionLevel: document.getElementById('errorCorrectionLevel').value,
+                    margin: parseInt(document.getElementById('margin').value),
                     color: {
-                        dark: color,
+                        dark: document.getElementById('color').value,
                         light: '#FFFFFF'
                     }
                 };
 
-                const qrCode = QRCode.generate(text, options);
-                currentQRSVG = qrCode;
+                const qrSvg = QRCode.generate(text, options);
+                currentQRSVG = qrSvg;
                 
+                const resultDiv = document.getElementById('qrResult');
                 resultDiv.innerHTML = `
                     <div class="success">QRコードが正常に生成されました</div>
-                    <div class="qr-output">${qrCode}</div>
+                    <div class="qr-output">${qrSvg}</div>
                     <p><strong>入力テキスト:</strong> ${text}</p>
                     <p><strong>文字数:</strong> ${text.length}</p>
-                    <p><strong>エラー訂正レベル:</strong> ${errorCorrectionLevel}</p>
+                    <p><strong>エラー訂正レベル:</strong> ${options.errorCorrectionLevel}</p>
                 `;
                 
                 document.getElementById('downloadBtn').disabled = false;
+                
             } catch (error) {
-                resultDiv.innerHTML = `<div class="error">エラー: ${error.message}</div>`;
-                document.getElementById('downloadBtn').disabled = true;
-                console.error('QR生成エラー:', error);
+                console.error('ライブラリ読み込みエラー:', error);
+                const resultDiv = document.getElementById('qrResult');
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p><strong>ライブラリ読み込みエラー:</strong></p>
+                        <p>${error.message}</p>
+                        <p><strong>解決方法:</strong></p>
+                        <ul style="text-align: left; margin: 10px 0;">
+                            <li>ローカルサーバーで起動してください（file://プロトコルではES Modulesが制限されます）</li>
+                            <li><code>npx serve .</code> または <code>python -m http.server</code> を実行</li>
+                            <li>まず <code>npm run build</code> でライブラリをビルドしてください</li>
+                        </ul>
+                    </div>
+                `;
             }
-        };
+        }
 
         // SVGダウンロード関数
         window.downloadSVG = function() {
@@ -337,93 +401,31 @@ scanner.start();</code></pre>
             URL.revokeObjectURL(url);
         };
 
-        // ファイルからの読み取り
+        // ファイルからの読み取り（プレースホルダー）
         window.decodeFromFile = function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
             const resultDiv = document.getElementById('decodeResult');
-            
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const result = await QRCode.decode(e.target.result);
-                    resultDiv.innerHTML = `
-                        <div class="success">QRコードを正常に読み取りました</div>
-                        <p><strong>読み取り結果:</strong></p>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; word-break: break-all;">
-                            ${escapeHtml(result.data)}
-                        </div>
-                        <p><strong>データタイプ:</strong> ${result.type || 'テキスト'}</p>
-                    `;
-                } catch (error) {
-                    resultDiv.innerHTML = `<div class="error">読み取りエラー: ${error.message}</div>`;
-                    console.error('デコードエラー:', error);
-                }
-            };
-            reader.readAsDataURL(file);
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <p><strong>🔧 読み取り機能:</strong></p>
+                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
+                </div>
+            `;
         };
 
-        // カメラ開始
-        window.startCamera = async function() {
-            const video = document.getElementById('video');
+        // カメラ機能（プレースホルダー）
+        window.startCamera = function() {
             const resultDiv = document.getElementById('decodeResult');
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                video.srcObject = stream;
-                video.style.display = 'block';
-                video.play();
-                
-                document.getElementById('startCameraBtn').disabled = true;
-                document.getElementById('stopCameraBtn').disabled = false;
-                
-                // スキャナー開始
-                scanner = new QRCode.Scanner(video);
-                scanner.start();
-                
-                // スキャン結果のイベントリスナー
-                scanner.on('decode', (result) => {
-                    resultDiv.innerHTML = `
-                        <div class="success">QRコードをスキャンしました</div>
-                        <p><strong>スキャン結果:</strong></p>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; word-break: break-all;">
-                            ${escapeHtml(result.data)}
-                        </div>
-                    `;
-                });
-                
-                scanner.on('error', (error) => {
-                    resultDiv.innerHTML = `<div class="error">スキャンエラー: ${error.message}</div>`;
-                });
-                
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">カメラアクセスエラー: ${error.message}</div>`;
-                console.error('カメラエラー:', error);
-            }
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <p><strong>📹 カメラ機能:</strong></p>
+                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
+                    <p>HTTPS環境が必要な場合があります</p>
+                </div>
+            `;
         };
 
-        // カメラ停止
         window.stopCamera = function() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            
-            if (scanner) {
-                scanner.stop();
-                scanner = null;
-            }
-            
-            const video = document.getElementById('video');
-            video.style.display = 'none';
-            video.srcObject = null;
-            
-            document.getElementById('startCameraBtn').disabled = false;
-            document.getElementById('stopCameraBtn').disabled = true;
+            // プレースホルダー
         };
 
         // HTMLエスケープ関数
@@ -432,13 +434,6 @@ scanner.start();</code></pre>
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // ページ読み込み時に生成例を表示
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                window.generateQR();
-            }, 100);
-        });
     </script>
 </body>
 </html>
