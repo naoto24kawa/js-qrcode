@@ -5,7 +5,8 @@ import {
   calculateDistance,
   applyPerspectiveTransform 
 } from './utils.js';
-import { FINDER_PATTERN, FORMAT_INFO, MASK_PATTERNS, ALPHANUMERIC_CHARS } from './constants.js';
+import { FINDER_PATTERN, MASK_PATTERNS, ALPHANUMERIC_CHARS } from './constants.js';
+import { getFormatInfo } from './format-info.js';
 
 // Constants for decoding
 const ADAPTIVE_THRESHOLD_BLOCK_SIZE = 11;
@@ -224,7 +225,7 @@ export class QRCodeDecoder {
     
     for (const level of ['L', 'M', 'Q', 'H']) {
       for (let mask = 0; mask < 8; mask++) {
-        if (FORMAT_INFO[level][mask] === formatBits) {
+        if (getFormatInfo(level, mask) === formatBits) {
           return { errorCorrectionLevel: level, maskPattern: mask };
         }
       }

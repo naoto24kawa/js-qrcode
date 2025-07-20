@@ -12,6 +12,19 @@ global.ImageData = class ImageData {
   }
 };
 
+// TextEncoder/TextDecoder polyfill for Node.js test environment
+global.TextEncoder = class TextEncoder {
+  encode(str) {
+    return new Uint8Array(Buffer.from(str, 'utf8'));
+  }
+};
+
+global.TextDecoder = class TextDecoder {
+  decode(buffer) {
+    return Buffer.from(buffer).toString('utf8');
+  }
+};
+
 global.Image = class Image {
   constructor() {
     this.onload = null;

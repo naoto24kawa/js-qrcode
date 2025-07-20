@@ -30,7 +30,8 @@ export class QRCodeEncoder {
     const size = MODULE_SIZES.BASE_SIZE + (version - 1) * MODULE_SIZES.VERSION_INCREMENT;
     
     // 5. Find best mask pattern (or use forced mask)
-    const bestMask = options.forceMask !== undefined ? options.forceMask : this.masking.findBestMask(baseModules, size);
+    const maskingOptions = { ...options, errorCorrectionLevel };
+    const bestMask = this.masking.findBestMask(baseModules, size, maskingOptions);
     
     // 6. Apply mask
     const maskedModules = this.masking.applyMask(baseModules, bestMask, size);

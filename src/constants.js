@@ -6,10 +6,10 @@ export const QR_MODES = {
 };
 
 export const ERROR_CORRECTION_LEVELS = {
-  L: 1,  // ~7%
-  M: 0,  // ~15% (default)
-  Q: 3,  // ~25%
-  H: 2   // ~30%
+  L: 0b01,  // ~7% - QR spec: 01
+  M: 0b00,  // ~15% (default) - QR spec: 00
+  Q: 0b11,  // ~25% - QR spec: 11
+  H: 0b10   // ~30% - QR spec: 10
 };
 
 export const ALPHANUMERIC_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
@@ -36,9 +36,11 @@ export const PATTERN_SIZES = {
 export const DEFAULT_OPTIONS = {
   size: 600,  // スマートフォン読み取り最適化: より大きなサイズ
   margin: 8,  // スマートフォン読み取り最適化: より大きなクワイエットゾーン
-  errorCorrectionLevel: 'H',  // スマートフォン読み取り最適化: 最高エラー訂正レベル
+  errorCorrectionLevel: 'M',  // デフォルトレベル
   color: { dark: '#000000', light: '#FFFFFF' },
-  format: 'svg'  // 'svg' or 'png'
+  format: 'svg',  // 'svg' or 'png'
+  // forceMask: undefined,  // 0-7 to force specific mask pattern
+  // legacyCompatibility: false  // true for legacy reader compatibility
 };
 
 export const CAPACITY_TABLE = {
@@ -58,13 +60,6 @@ export const CAPACITY_TABLE = {
   13: { L: [1022, 619, 425, 262], M: [796, 483, 331, 204], Q: [580, 352, 241, 149], H: [427, 259, 177, 109] },
   14: { L: [1101, 667, 458, 282], M: [871, 528, 362, 223], Q: [621, 376, 258, 159], H: [468, 283, 194, 120] },
   15: { L: [1250, 758, 520, 320], M: [991, 600, 412, 254], Q: [703, 426, 292, 180], H: [530, 321, 220, 136] }
-};
-
-export const FORMAT_INFO = {
-  L: [0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976],
-  M: [0x5412, 0x5125, 0x5E7C, 0x5B4B, 0x45F9, 0x40CE, 0x4F97, 0x4AA0],
-  Q: [0x355F, 0x3068, 0x3F31, 0x3A06, 0x24B4, 0x2183, 0x2EDA, 0x2BED],
-  H: [0x1689, 0x13BE, 0x1CE7, 0x19D0, 0x0762, 0x0255, 0x0D0C, 0x083B]
 };
 
 export const FINDER_PATTERN = [

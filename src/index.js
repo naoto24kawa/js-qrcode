@@ -38,8 +38,16 @@ const QRCode = {
     try {
       QRCodeValidation.validateGenerateInput(data);
       
+      
       const generator = new QRCodeGenerator();
-      return generator.generate(data, options);
+      const result = generator.generate(data, options);
+      
+      // 後方互換性のため、デフォルトではSVG文字列を返す
+      if (options.returnObject === true) {
+        return result;
+      }
+      
+      return result.svg || result.png || '';
     } catch (error) {
       if (error instanceof QRCodeGenerationError) {
         throw error;

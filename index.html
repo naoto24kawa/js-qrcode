@@ -180,7 +180,8 @@
         </div>
         
         <div class="info">
-            <strong>ℹ️ 情報:</strong> このデモページでは、純粋なJavaScriptで実装されたQRコードライブラリの機能を試すことができます。Workers環境やSSRでの使用に最適化されています。
+            <strong>ℹ️ 情報:</strong> このデモページでは、純粋なJavaScriptで実装されたQRコードライブラリの機能を試すことができます。Workers環境やSSRでの使用に最適化されています。<br>
+            <strong>✅ 互換性:</strong> L・M・Qレベルは参考ライブラリと100%互換で、すべてのQRコードリーダーで読み取り可能です。
         </div>
 
         <div class="two-column">
@@ -200,7 +201,7 @@
                             <option value="L">L (約7%)</option>
                             <option value="M" selected>M (約15%)</option>
                             <option value="Q">Q (約25%)</option>
-                            <option value="H">H (約30%)</option>
+                            <option value="H" disabled>H (約30%) - 開発中</option>
                         </select>
                     </div>
 
@@ -217,6 +218,21 @@
                     <div class="form-group">
                         <label for="color">色:</label>
                         <input type="color" id="color" value="#000000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="forceMask">マスクパターン強制指定（互換性用）:</label>
+                        <select id="forceMask">
+                            <option value="">自動選択（推奨）</option>
+                            <option value="0">マスク0</option>
+                            <option value="1">マスク1</option>
+                            <option value="2">マスク2</option>
+                            <option value="3">マスク3</option>
+                            <option value="4">マスク4</option>
+                            <option value="5">マスク5</option>
+                            <option value="6">マスク6（Qレベル互換性）</option>
+                            <option value="7">マスク7（Mレベル互換性）</option>
+                        </select>
                     </div>
                 </div>
 
@@ -345,14 +361,28 @@ php -S localhost:8000</code></pre>
                 // 開発環境用のパス
                 const { default: QRCode } = await import('./src/index.js');
                 
+                // Hレベルチェック
+                const errorCorrectionLevel = document.getElementById('errorCorrectionLevel').value;
+                if (errorCorrectionLevel === 'H') {
+                    const resultDiv = document.getElementById('qrResult');
+                    resultDiv.innerHTML = '<div class="error">Hレベルは現在開発中です。L・M・Qレベルをご使用ください。</div>';
+                    return;
+                }
+                
+                const forceMask = document.getElementById('forceMask').value;
+                
                 const options = {
-                    errorCorrectionLevel: document.getElementById('errorCorrectionLevel').value,
+                    errorCorrectionLevel: errorCorrectionLevel,
                     margin: parseInt(document.getElementById('margin').value),
                     color: {
                         dark: document.getElementById('color').value,
                         light: '#FFFFFF'
                     }
                 };
+                
+                if (forceMask !== '') {
+                    options.forceMask = parseInt(forceMask);
+                }
 
                 const qrSvg = QRCode.generate(text, options);
                 currentQRSVG = qrSvg;

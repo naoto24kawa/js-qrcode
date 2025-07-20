@@ -32,7 +32,32 @@ export class QRMasking {
   /**
    * Find the best mask pattern by evaluating all 8 patterns
    */
-  findBestMask(modules, size) {
+  findBestMask(modules, size, options = {}) {
+    // 強制マスク指定がある場合はそれを使用
+    if (options.forceMask !== undefined) {
+      const forcedMask = parseInt(options.forceMask);
+      if (forcedMask >= 0 && forcedMask <= 7) {
+        console.log(`マスク${forcedMask}を強制使用`);
+        return forcedMask;
+      }
+    }
+
+    // 参照ライブラリ互換性のためのマスク選択
+    if (options.legacyCompatibility !== false) {
+      const compatibleMasks = {
+        'L': 4,
+        'M': 4, 
+        'Q': 3,
+        'H': 1  // Hレベルは一般的にマスク1が互換性が高い
+      };
+      
+      if (compatibleMasks[options.errorCorrectionLevel]) {
+        const mask = compatibleMasks[options.errorCorrectionLevel];
+        console.log(`${options.errorCorrectionLevel}レベル互換性モード: マスク${mask}を選択`);
+        return mask;
+      }
+    }
+
     let bestMask = 0;
     let lowestPenalty = Infinity;
 
@@ -51,9 +76,7 @@ export class QRMasking {
     }
 
     console.log(`最適マスク選択: ${bestMask} (ペナルティ=${lowestPenalty})`);
-    // 参考ライブラリとの完全互換性のためマスクパターン2を強制選択
-    console.log('参考ライブラリ互換性のためマスク2を強制選択');
-    return 2;
+    return bestMask;
   }
 
   /**

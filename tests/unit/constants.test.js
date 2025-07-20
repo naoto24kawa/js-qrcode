@@ -8,7 +8,6 @@ import {
   PATTERN_SIZES,
   DEFAULT_OPTIONS,
   CAPACITY_TABLE,
-  FORMAT_INFO,
   FINDER_PATTERN,
   MASK_PATTERNS
 } from '../../src/constants.js';
@@ -33,10 +32,10 @@ describe('Constants', () => {
 
   describe('ERROR_CORRECTION_LEVELS', () => {
     test('should have correct error correction values', () => {
-      expect(ERROR_CORRECTION_LEVELS.L).toBe(1);
-      expect(ERROR_CORRECTION_LEVELS.M).toBe(0);
-      expect(ERROR_CORRECTION_LEVELS.Q).toBe(3);
-      expect(ERROR_CORRECTION_LEVELS.H).toBe(2);
+      expect(ERROR_CORRECTION_LEVELS.L).toBe(0b01);  // QR spec: 01
+      expect(ERROR_CORRECTION_LEVELS.M).toBe(0b00);  // QR spec: 00
+      expect(ERROR_CORRECTION_LEVELS.Q).toBe(0b11);  // QR spec: 11
+      expect(ERROR_CORRECTION_LEVELS.H).toBe(0b10);  // QR spec: 10
     });
 
     test('should have all required levels', () => {
@@ -86,7 +85,7 @@ describe('Constants', () => {
     test('should have correct version boundaries', () => {
       expect(VERSION_INFO.MIN_VERSION).toBe(1);
       expect(VERSION_INFO.MAX_VERSION).toBe(40);
-      expect(VERSION_INFO.SUPPORTED_MAX).toBe(10);
+      expect(VERSION_INFO.SUPPORTED_MAX).toBe(15);
     });
 
     test('should have logical version progression', () => {
@@ -124,9 +123,9 @@ describe('Constants', () => {
     });
 
     test('should have reasonable default values', () => {
-      expect(DEFAULT_OPTIONS.size).toBe(300);
-      expect(DEFAULT_OPTIONS.margin).toBe(4);
-      expect(DEFAULT_OPTIONS.errorCorrectionLevel).toBe('M');
+      expect(DEFAULT_OPTIONS.size).toBe(600);
+      expect(DEFAULT_OPTIONS.margin).toBe(8);
+      expect(DEFAULT_OPTIONS.errorCorrectionLevel).toBe('H');
       expect(DEFAULT_OPTIONS.color.dark).toBe('#000000');
       expect(DEFAULT_OPTIONS.color.light).toBe('#FFFFFF');
     });
@@ -159,27 +158,6 @@ describe('Constants', () => {
           expect(levels.M[i]).toBeGreaterThanOrEqual(levels.Q[i]);
           expect(levels.Q[i]).toBeGreaterThanOrEqual(levels.H[i]);
         }
-      });
-    });
-  });
-
-  describe('FORMAT_INFO', () => {
-    test('should have entries for all error correction levels', () => {
-      const levels = ['L', 'M', 'Q', 'H'];
-      levels.forEach(level => {
-        expect(FORMAT_INFO).toHaveProperty(level);
-        expect(Array.isArray(FORMAT_INFO[level])).toBe(true);
-        expect(FORMAT_INFO[level].length).toBe(8); // 8 mask patterns
-      });
-    });
-
-    test('should contain valid format info values', () => {
-      Object.values(FORMAT_INFO).forEach(levelArray => {
-        levelArray.forEach(value => {
-          expect(typeof value).toBe('number');
-          expect(value).toBeGreaterThanOrEqual(0);
-          expect(value).toBeLessThan(0x8000); // 15-bit values
-        });
       });
     });
   });
