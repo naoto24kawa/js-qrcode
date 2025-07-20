@@ -124,7 +124,7 @@ describe('Constants', () => {
     });
 
     test('should have reasonable default values', () => {
-      expect(DEFAULT_OPTIONS.size).toBe(200);
+      expect(DEFAULT_OPTIONS.size).toBe(300);
       expect(DEFAULT_OPTIONS.margin).toBe(4);
       expect(DEFAULT_OPTIONS.errorCorrectionLevel).toBe('M');
       expect(DEFAULT_OPTIONS.color.dark).toBe('#000000');

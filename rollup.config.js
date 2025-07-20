@@ -9,12 +9,14 @@ export default [
       {
         file: 'dist/js-qrcode.js',
         format: 'umd',
-        name: 'QRCode'
+        name: 'QRCode',
+        exports: 'named'
       },
       {
         file: 'dist/js-qrcode.min.js',
         format: 'umd',
         name: 'QRCode',
+        exports: 'named',
         plugins: [terser()]
       },
       {

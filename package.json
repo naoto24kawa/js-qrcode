@@ -67,7 +67,9 @@
     "testMatch": [
       "**/tests/**/*.test.js"
     ],
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
     "transform": {
       "^.+\\.js$": "babel-jest"
     },
@@ -89,5 +91,10 @@
       "import": "./src/index.js",
       "require": "./dist/js-qrcode.js"
     }
+  },
+  "dependencies": {
+    "qr.js": "^0.0.0",
+    "qrcode": "^1.5.4",
+    "qrcode-generator": "^2.0.2"
   }
 }

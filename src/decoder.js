@@ -7,6 +7,11 @@ import {
 } from './utils.js';
 import { FINDER_PATTERN, FORMAT_INFO, MASK_PATTERNS, ALPHANUMERIC_CHARS } from './constants.js';
 
+// Constants for decoding
+const ADAPTIVE_THRESHOLD_BLOCK_SIZE = 11;
+const ADAPTIVE_THRESHOLD_C = 2;
+const MIN_FINDER_PATTERN_DISTANCE = 10;
+
 export class QRCodeDecoder {
   constructor() {
     this.modes = {
@@ -79,7 +84,7 @@ export class QRCodeDecoder {
   }
   
   extractMatrix(imageData) {
-    return adaptiveThreshold(imageData, 11, 2);
+    return adaptiveThreshold(imageData, ADAPTIVE_THRESHOLD_BLOCK_SIZE, ADAPTIVE_THRESHOLD_C);
   }
   
   decodeMatrix(matrix) {
@@ -130,7 +135,7 @@ export class QRCodeDecoder {
   
   filterFinderPatterns(patterns) {
     const filtered = [];
-    const minDistance = 10;
+    const minDistance = MIN_FINDER_PATTERN_DISTANCE;
     
     for (const pattern of patterns) {
       let isDuplicate = false;

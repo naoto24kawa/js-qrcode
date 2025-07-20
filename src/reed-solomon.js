@@ -137,6 +137,66 @@ export const ERROR_CORRECTION_PARAMS = {
     M: { dataCodewords: 86, eccCodewords: 48, blocks: 2 },
     Q: { dataCodewords: 62, eccCodewords: 72, blocks: 2 },
     H: { dataCodewords: 46, eccCodewords: 88, blocks: 4 }
+  },
+  6: {
+    L: { dataCodewords: 136, eccCodewords: 18, blocks: 2 },
+    M: { dataCodewords: 108, eccCodewords: 22, blocks: 4 },
+    Q: { dataCodewords: 72, eccCodewords: 36, blocks: 4 },
+    H: { dataCodewords: 54, eccCodewords: 52, blocks: 4 }
+  },
+  7: {
+    L: { dataCodewords: 156, eccCodewords: 20, blocks: 2 },
+    M: { dataCodewords: 124, eccCodewords: 26, blocks: 4 },
+    Q: { dataCodewords: 88, eccCodewords: 40, blocks: 2 },
+    H: { dataCodewords: 66, eccCodewords: 46, blocks: 4 }
+  },
+  8: {
+    L: { dataCodewords: 194, eccCodewords: 24, blocks: 2 },
+    M: { dataCodewords: 154, eccCodewords: 30, blocks: 2 },
+    Q: { dataCodewords: 110, eccCodewords: 42, blocks: 4 },
+    H: { dataCodewords: 84, eccCodewords: 60, blocks: 2 }
+  },
+  9: {
+    L: { dataCodewords: 232, eccCodewords: 30, blocks: 2 },
+    M: { dataCodewords: 182, eccCodewords: 22, blocks: 3 },
+    Q: { dataCodewords: 132, eccCodewords: 42, blocks: 4 },
+    H: { dataCodewords: 102, eccCodewords: 66, blocks: 2 }
+  },
+  10: {
+    L: { dataCodewords: 346, eccCodewords: 18, blocks: 2 },
+    M: { dataCodewords: 216, eccCodewords: 26, blocks: 4 },
+    Q: { dataCodewords: 154, eccCodewords: 24, blocks: 6 },
+    H: { dataCodewords: 119, eccCodewords: 36, blocks: 6 }
+  },
+  11: {
+    L: { dataCodewords: 384, eccCodewords: 20, blocks: 4 },
+    M: { dataCodewords: 240, eccCodewords: 30, blocks: 1 },
+    Q: { dataCodewords: 172, eccCodewords: 28, blocks: 4 },
+    H: { dataCodewords: 132, eccCodewords: 42, blocks: 2 }
+  },
+  12: {
+    L: { dataCodewords: 432, eccCodewords: 24, blocks: 2 },
+    M: { dataCodewords: 270, eccCodewords: 22, blocks: 6 },
+    Q: { dataCodewords: 200, eccCodewords: 26, blocks: 4 },
+    H: { dataCodewords: 154, eccCodewords: 36, blocks: 6 }
+  },
+  13: {
+    L: { dataCodewords: 480, eccCodewords: 30, blocks: 4 },
+    M: { dataCodewords: 304, eccCodewords: 22, blocks: 8 },
+    Q: { dataCodewords: 230, eccCodewords: 24, blocks: 8 },
+    H: { dataCodewords: 178, eccCodewords: 42, blocks: 4 }
+  },
+  14: {
+    L: { dataCodewords: 532, eccCodewords: 18, blocks: 3 },
+    M: { dataCodewords: 334, eccCodewords: 24, blocks: 4 },
+    Q: { dataCodewords: 254, eccCodewords: 18, blocks: 11 },
+    H: { dataCodewords: 196, eccCodewords: 36, blocks: 8 }
+  },
+  15: {
+    L: { dataCodewords: 588, eccCodewords: 20, blocks: 5 },
+    M: { dataCodewords: 370, eccCodewords: 30, blocks: 5 },
+    Q: { dataCodewords: 280, eccCodewords: 24, blocks: 5 },
+    H: { dataCodewords: 218, eccCodewords: 36, blocks: 11 }
   }
 };
 
@@ -153,7 +213,6 @@ export class QRErrorCorrection {
     }
 
     const { dataCodewords, eccCodewords, blocks } = params;
-    const totalCodewords = dataCodewords + eccCodewords;
 
     // Pad data to required length
     const paddedData = this.padData(dataBytes, dataCodewords);
@@ -170,19 +229,13 @@ export class QRErrorCorrection {
   padData(data, targetLength) {
     const result = [...data];
     
-    // Add terminator (0000) if there's space
-    if (result.length < targetLength) {
-      result.push(0);
-    }
-
-    // Pad to byte boundary
-    while (result.length % 8 !== 0 && result.length < targetLength) {
-      result.push(0);
-    }
-
-    // Add padding bytes
-    const padBytes = [0xEC, 0x11]; // 11101100, 00010001
+    // QRコード仕様に従った正確なパディング
+    // 注意：この関数に渡される data は既にバイト単位
+    
+    // パディングバイトを追加（236, 17の交互）
+    const padBytes = [236, 17]; // 0xEC, 0x11
     let padIndex = 0;
+    
     while (result.length < targetLength) {
       result.push(padBytes[padIndex % 2]);
       padIndex++;
@@ -192,25 +245,36 @@ export class QRErrorCorrection {
   }
 
   processMultipleBlocks(data, dataCodewords, eccCodewords, blocks) {
-    const blockSize = Math.ceil(dataCodewords / blocks);
+    // QR仕様に従った正確なブロック分割
+    // Version 3, Level H: 2ブロック、各ブロック13バイト
+    const blockSize = Math.floor(dataCodewords / blocks);
+    const remainderSize = dataCodewords % blocks;
+    
     const dataBlocks = [];
     const eccBlocks = [];
-
-    // Split data into blocks
+    
+    let dataIndex = 0;
+    
+    // データを正確に分割
     for (let i = 0; i < blocks; i++) {
-      const start = i * blockSize;
-      const end = Math.min(start + blockSize, data.length);
-      const blockData = data.slice(start, end);
+      // 最初のブロックは基本サイズ、残りのブロックは+1（必要に応じて）
+      const currentBlockSize = blockSize + (i < remainderSize ? 1 : 0);
+      const blockData = data.slice(dataIndex, dataIndex + currentBlockSize);
+      dataIndex += currentBlockSize;
       
-      // Encode each block
-      const encoded = this.encoder.encode(blockData, eccCodewords);
-      dataBlocks.push(encoded.slice(0, blockData.length));
-      eccBlocks.push(encoded.slice(blockData.length));
+      // エラー訂正符号を生成（元データは保持）
+      const eccPerBlock = eccCodewords / blocks; // 各ブロックのエラー訂正数
+      const encoded = this.encoder.encode(blockData, eccPerBlock);
+      const eccData = encoded.slice(blockData.length); // エラー訂正部分のみ取得
+      
+      dataBlocks.push(blockData);  // 元データを保持
+      eccBlocks.push(eccData);
     }
 
-    // Interleave data blocks
+    // データブロックのインターリーブ
     const interleavedData = [];
     const maxDataLength = Math.max(...dataBlocks.map(block => block.length));
+    
     for (let i = 0; i < maxDataLength; i++) {
       for (let j = 0; j < blocks; j++) {
         if (i < dataBlocks[j].length) {
@@ -219,9 +283,11 @@ export class QRErrorCorrection {
       }
     }
 
-    // Interleave error correction blocks
+    // エラー訂正ブロックのインターリーブ
     const interleavedEcc = [];
-    for (let i = 0; i < eccCodewords; i++) {
+    const maxEccLength = Math.max(...eccBlocks.map(block => block.length));
+    
+    for (let i = 0; i < maxEccLength; i++) {
       for (let j = 0; j < blocks; j++) {
         if (i < eccBlocks[j].length) {
           interleavedEcc.push(eccBlocks[j][i]);

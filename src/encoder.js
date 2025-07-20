@@ -12,7 +12,7 @@ export class QRCodeEncoder {
     this.masking = new QRMasking();
   }
   
-  encode(data, errorCorrectionLevel = 'M') {
+  encode(data, errorCorrectionLevel = 'M', options = {}) {
     const mode = this.dataEncoder.detectMode(data);
     const version = this.dataEncoder.determineVersion(data, mode, errorCorrectionLevel);
     
@@ -29,10 +29,10 @@ export class QRCodeEncoder {
     const baseModules = this.moduleBuilder.generateModules(dataBits, version, errorCorrectionLevel);
     const size = MODULE_SIZES.BASE_SIZE + (version - 1) * MODULE_SIZES.VERSION_INCREMENT;
     
-    // 5. Find best mask pattern
-    const bestMask = this.masking.findBestMask(baseModules, size);
+    // 5. Find best mask pattern (or use forced mask)
+    const bestMask = options.forceMask !== undefined ? options.forceMask : this.masking.findBestMask(baseModules, size);
     
-    // 6. Apply best mask
+    // 6. Apply mask
     const maskedModules = this.masking.applyMask(baseModules, bestMask, size);
     
     // 7. Update format information with correct mask pattern

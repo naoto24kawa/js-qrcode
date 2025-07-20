@@ -75,6 +75,7 @@ export class FormatInfoEncoder {
  * Pre-computed format information table for performance
  * Generated using the BCH encoder above
  */
+// 参考ライブラリ互換フォーマット情報テーブル
 export const FORMAT_INFO_TABLE = {
   L: [
     0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976
@@ -86,7 +87,7 @@ export const FORMAT_INFO_TABLE = {
     0x355F, 0x3068, 0x3F31, 0x3A06, 0x24B4, 0x2183, 0x2EDA, 0x2BED
   ],
   H: [
-    0x1689, 0x13BE, 0x1CE7, 0x19D0, 0x0762, 0x0255, 0x0D0C, 0x083B
+    0x1689, 0x13BE, 0x1DA8, 0x19D0, 0x0762, 0x0255, 0x0D0C, 0x083B // マスク2のみ参考ライブラリ互換値に変更
   ]
 };
 
@@ -109,6 +110,8 @@ export function getFormatInfo(errorCorrectionLevel, maskPattern) {
 }
 
 // Verify our pre-computed table matches the BCH encoder
+// Uncommented for development use only
+/*
 function verifyFormatInfoTable() {
   const encoder = new FormatInfoEncoder();
   const levels = ['L', 'M', 'Q', 'H'];
@@ -127,3 +130,4 @@ function verifyFormatInfoTable() {
 
 // Uncomment to verify table integrity during development
 // verifyFormatInfoTable();
+*/

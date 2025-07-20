@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "git": {
+      "timeout": 60,
+      "command": "/Users/nishikawa/.asdf/shims/uvx",
+      "args": ["mcp-server-git"],
+      "envFile": "~/.claude/.env.mcp",
+      "transportType": "stdio"
+    },
+    "playwright": {
+      "command": "/Users/nishikawa/.asdf/shims/npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "envFile": "~/.claude/.env.mcp"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
