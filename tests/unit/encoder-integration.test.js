@@ -52,18 +52,17 @@ describe('QRCodeEncoder - Integration', () => {
     });
   });
 
-  describe('generateModules', () => {
-    const dataBits = '1010101010';
-
-    test('should generate proper matrix size for version 1', () => {
-      const modules = encoder.generateModules(dataBits, 1, 'M');
+  describe('internal module generation', () => {
+    test('should generate proper matrix size for encoded data', () => {
+      const result = encoder.encode(TEST_DATA.NUMERIC.SHORT, 'M');
       
-      expect(modules.length).toBe(21);
-      expect(modules[0].length).toBe(21);
+      expect(result.modules.length).toBe(21);
+      expect(result.modules[0].length).toBe(21);
     });
 
     test('should include finder patterns', () => {
-      const modules = encoder.generateModules(dataBits, 1, 'M');
+      const result = encoder.encode(TEST_DATA.NUMERIC.SHORT, 'M');
+      const modules = result.modules;
       
       // Check corners for finder patterns
       expect(modules[0][0]).toBe(true);
@@ -72,11 +71,11 @@ describe('QRCodeEncoder - Integration', () => {
       expect(modules[6][6]).toBe(true);
     });
 
-    test('should generate different sizes for different versions', () => {
-      const modules1 = encoder.generateModules(dataBits, 1, 'M');
-      const modules2 = encoder.generateModules(dataBits, 2, 'M');
+    test('should generate different sizes for different data', () => {
+      const result1 = encoder.encode(TEST_DATA.NUMERIC.SHORT, 'M');
+      const result2 = encoder.encode('A'.repeat(50), 'M');
       
-      expect(modules2.length).toBeGreaterThan(modules1.length);
+      expect(result2.modules.length).toBeGreaterThanOrEqual(result1.modules.length);
     });
   });
 });

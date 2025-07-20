@@ -1,11 +1,11 @@
-import { QRCodeEncoder } from '../../src/encoder.js';
+import { QRDataEncoder } from '../../src/data-encoder.js';
 import { TEST_DATA, EXPECTED_MODES } from '../helpers/test-data.js';
 
-describe('QRCodeEncoder - Version Determination', () => {
+describe('QRDataEncoder - Version Determination', () => {
   let encoder;
   
   beforeEach(() => {
-    encoder = new QRCodeEncoder();
+    encoder = new QRDataEncoder();
   });
 
   describe('determineVersion', () => {

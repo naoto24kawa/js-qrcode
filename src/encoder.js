@@ -57,37 +57,4 @@ export class QRCodeEncoder {
     return bits;
   }
 
-  // Backward compatibility methods for tests
-  get modes() {
-    return {
-      NUMERIC: 1,
-      ALPHANUMERIC: 2,
-      BYTE: 4,
-      KANJI: 8
-    };
-  }
-
-  detectMode(data) {
-    return this.dataEncoder.detectMode(data);
-  }
-
-  determineVersion(data, mode, errorCorrectionLevel) {
-    return this.dataEncoder.determineVersion(data, mode, errorCorrectionLevel);
-  }
-
-  encodeNumeric(data) {
-    return this.dataEncoder.encodeNumeric(data);
-  }
-
-  encodeAlphanumeric(data) {
-    return this.dataEncoder.encodeAlphanumeric(data);
-  }
-
-  encodeByte(data) {
-    return this.dataEncoder.encodeByte(data);
-  }
-
-  generateModules(dataBits, version, errorCorrectionLevel) {
-    return this.moduleBuilder.generateModules(dataBits, version, errorCorrectionLevel);
-  }
 }

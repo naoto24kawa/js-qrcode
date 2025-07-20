@@ -4,6 +4,8 @@ export { QRCodeDecoder } from './decoder.js';
 export { QRCodeScanner } from './scanner.js';
 export { QRErrorCorrection } from './reed-solomon.js';
 export { QRMasking } from './masking.js';
+export { SVGRenderer } from './renderers/svg-renderer.js';
+export { PNGRenderer } from './renderers/png-renderer.js';
 export * from './utils.js';
 export * from './errors.js';
 

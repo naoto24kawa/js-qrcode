@@ -71,7 +71,6 @@ export class QRModuleBuilder {
       direction = -direction;
     }
     
-    console.log(`データビット配置完了: ${bitIndex}ビット配置済み`);
   }
 
   addFormatInfoWithMask(modules, size, errorCorrectionLevel, maskPattern) {
@@ -88,20 +87,29 @@ export class QRModuleBuilder {
   isReservedModule(row, col, size, version = 1) {
     if (row < 0 || row >= size || col < 0 || col >= size) return true;
     
+    return this.isFinderArea(row, col, size) ||
+           this.isTimingPattern(row, col) ||
+           this.isDarkModule(row, col, version) ||
+           this.isFormatInfo(row, col, size) ||
+           this.isAlignmentPattern(row, col, version, size);
+  }
+
+  isFinderArea(row, col, size) {
     // Finder pattern areas (including separators) - 9x9 areas
-    if ((row <= 8 && col <= 8) || 
-        (row <= 8 && col >= size - 8) || 
-        (row >= size - 8 && col <= 8)) {
-      return true;
-    }
-    
-    // Timing patterns
-    if (row === 6 || col === 6) return true;
-    
-    // Dark module
-    if (row === 4 * version + 9 && col === 8) return true;
-    
-    // Format information areas - Complete implementation
+    return (row <= 8 && col <= 8) || 
+           (row <= 8 && col >= size - 8) || 
+           (row >= size - 8 && col <= 8);
+  }
+
+  isTimingPattern(row, col) {
+    return row === 6 || col === 6;
+  }
+
+  isDarkModule(row, col, version) {
+    return row === 4 * version + 9 && col === 8;
+  }
+
+  isFormatInfo(row, col, size) {
     // Upper horizontal format info (row 8, cols 0-8 and size-8 to size-1)
     if (row === 8 && (col <= 8 || col >= size - 8)) {
       return true;
@@ -112,15 +120,18 @@ export class QRModuleBuilder {
       return true;
     }
     
-    // Alignment patterns for version 2+
-    if (version >= 2) {
-      const centers = this.getAlignmentPatternCenters(version);
-      for (const centerRow of centers) {
-        for (const centerCol of centers) {
-          if (!this.isFinderPatternArea(centerRow, centerCol, size)) {
-            if (Math.abs(row - centerRow) <= 2 && Math.abs(col - centerCol) <= 2) {
-              return true;
-            }
+    return false;
+  }
+
+  isAlignmentPattern(row, col, version, size) {
+    if (version < 2) return false;
+    
+    const centers = this.getAlignmentPatternCenters(version);
+    for (const centerRow of centers) {
+      for (const centerCol of centers) {
+        if (!this.isFinderPatternArea(centerRow, centerCol, size)) {
+          if (Math.abs(row - centerRow) <= 2 && Math.abs(col - centerCol) <= 2) {
+            return true;
           }
         }
       }
