@@ -2,81 +2,89 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## プロジェクト概要
 
-This is `@elchika-inc/js-qrcode`, a pure JavaScript QR code library optimized for Workers environments and SSR. The library provides QR code generation (SVG format) and reading functionality without external dependencies.
+このプロジェクトは、Workers環境とSSRでの使用に最適化された純粋なJavaScriptのQRコードライブラリです。外部依存関係なしでQRコードの生成（SVG形式）と読み取り機能を提供します。
 
-## Commands
+## 開発コマンド
 
-### Development
-- `npm run build` - Build the library using Rollup (generates UMD and ES module formats)
-- `npm run dev` - Build in watch mode for development
-- `npm test` - Run Jest test suite (requires 65% coverage)
-- `npm test:watch` - Run tests in watch mode
-- `npm run lint` - Run ESLint on source files
-- `npm run format` - Format code with Prettier
+### ビルド
+- `npm run build` - Rollupを使用してUMD、ESモジュール形式のディストリビューションファイルを生成
+- `npm run dev` - ウォッチモードでビルド
 
-### Build Outputs
-- `dist/js-qrcode.js` - UMD build for CommonJS/browser
-- `dist/js-qrcode.min.js` - Minified UMD build
-- `dist/js-qrcode.esm.js` - ES module build
+### テスト
+- `npm test` - 全テストの実行
+- `npm test:watch` - ウォッチモードでテスト実行
 
-## Architecture
+### コード品質
+- `npm run lint` - ESLintでコードリンティング
+- `npm run format` - Prettierでコード整形
 
-### Core Components
+### リリース
+- `npm run preversion` - テスト・リント実行（バージョンアップ前の自動チェック）
+- `npm run prepare` - ビルドを実行（npmへのpublish前の自動実行）
 
-The library is structured with separation of concerns across these modules:
+## アーキテクチャ
 
-#### Generation Pipeline
-- **`generator.js`** - Main QR code SVG generation orchestrator
-- **`encoder.js`** - QR encoding logic coordinator with backward compatibility
-- **`data-encoder.js`** - Data encoding (mode detection, version determination)
-- **`module-builder.js`** - QR code matrix/module generation
-- **`pattern-builder.js`** - QR pattern construction (finder, alignment, timing)
+### コアコンポーネント
 
-#### Reading Pipeline
-- **`decoder.js`** - QR code reading from images (ImageData, Base64, Uint8Array)
-- **`scanner.js`** - Browser camera scanning (client-side only)
+- **`src/index.js`** - メインAPI（`QRCode.generate`、`QRCode.decode`）とバリデーション
+- **`src/generator.js`** - QRコード生成ロジック（エンコーダー、レンダラーを統合）
+- **`src/encoder.js`** - データエンコーディング（数字、英数字、バイト、漢字モード対応）
+- **`src/decoder.js`** - QRコード読み取りロジック
+- **`src/scanner.js`** - ブラウザ環境でのカメラスキャン機能（クライアントサイド補助機能）
 
-#### Support
-- **`utils.js`** - Image processing utilities and mathematical functions
-- **`constants.js`** - QR specifications (sizes, patterns, error correction)
-- **`errors.js`** - Custom error classes with error codes
-- **`index.js`** - Main API with validation wrapper
+### データ処理レイヤー
 
-### API Design
+- **`src/data-encoder.js`** - 入力データの各エンコーディングモード処理
+- **`src/reed-solomon.js`** - エラー訂正符号化
+- **`src/format-info.js`** - 形式情報の生成・配置
+- **`src/masking.js`** - マスクパターンの適用と評価
 
-The main API surface is through the `QRCode` object:
-- `QRCode.generate(data, options)` - Generate SVG QR code
-- `QRCode.decode(data, options)` - Decode QR from image data
-- `QRCode.Scanner` - Camera scanning class (browser environments)
+### 構造構築レイヤー
 
-### Test Structure
+- **`src/pattern-builder.js`** - ファインダーパターン、アライメントパターン、タイミングパターンの配置
+- **`src/module-builder.js`** - QRコードマトリクスの構築とデータ配置
 
-Tests are organized by functionality:
-- **`tests/unit/`** - Component-specific tests
-- **`tests/integration/`** - End-to-end API tests
-- **`tests/helpers/`** - Test utilities and mocks
-- **`tests/setup.js`** - Global test environment setup (ImageData, Image mocks)
+### レンダリング
 
-The test environment uses jsdom and requires specific browser API mocks for image processing.
+- **`src/renderers/svg-renderer.js`** - SVG形式での出力（Workers/SSR環境での主要出力形式）
+- **`src/renderers/png-renderer.js`** - PNG形式での出力（実装状況要確認）
 
-### Workers Optimization
+### ユーティリティ
 
-The library is specifically optimized for edge runtime environments:
-- No external dependencies for cold start performance
-- SVG output for scalable, lightweight responses
-- Memory-efficient matrix operations
-- Support for various image input formats in serverless contexts
+- **`src/constants.js`** - QR仕様の定数定義
+- **`src/utils.js`** - 共通ユーティリティ関数
+- **`src/errors.js`** - カスタムエラークラス
 
-### Build Configuration
+## テスト構成
 
-- **Rollup** generates multiple output formats (UMD, ES modules)
-- **Babel** transpiles for broader compatibility
-- **ESLint** enforces modern JavaScript patterns
-- **Jest** with jsdom for comprehensive testing including browser APIs
+### 単体テスト（`tests/unit/`）
+各コンポーネントの機能別テストファイル
 
-## Target Environments
+### 統合テスト（`tests/integration/`）
+メインAPIの統合テスト
 
-Primary: Cloudflare Workers, Vercel Edge Runtime, Netlify Edge Functions
-Secondary: Next.js SSR, Node.js servers, browser client-side (supplementary)
+### テストヘルパー（`tests/helpers/`）
+テスト用のモック、アサーション、データ生成ユーティリティ
+
+## 主要な開発方針
+
+### Workers環境最適化
+- SVG出力によるレスポンス時間最適化
+- エラー訂正レベルによる品質制御
+- コールドスタート時間の最小化
+
+### クロスプラットフォーム対応
+- ES Modules（Workers/SSR）とCommonJS（Node.js）の両対応
+- ブラウザでのカメラ機能は補助機能として実装
+
+### QR仕様準拠
+- バージョン1-40サポート
+- 4つのエンコーディングモード（数字、英数字、バイト、漢字）
+- エラー訂正レベルL/M/Q/H対応
+- マスクパターンの自動選択と評価
+
+## ビルド設定
+
+Rollupを使用してUMD、ES modules形式のバンドルを生成。Terserによる最小化版も作成。
