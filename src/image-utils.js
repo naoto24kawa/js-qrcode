@@ -57,7 +57,80 @@ export function threshold(imageData, thresholdValue = 128) {
   return binary;
 }
 
+/**
+ * Compute integral image for fast area sum calculation
+ * Each cell contains the sum of all pixels above and to the left
+ */
+function computeIntegralImage(imageData) {
+  const { data, width, height } = imageData;
+  const integral = Array(height + 1).fill().map(() => Array(width + 1).fill(0));
+  
+  for (let y = 1; y <= height; y++) {
+    for (let x = 1; x <= width; x++) {
+      const i = ((y - 1) * width + (x - 1)) * 4;
+      const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      
+      integral[y][x] = gray + 
+                      integral[y - 1][x] + 
+                      integral[y][x - 1] - 
+                      integral[y - 1][x - 1];
+    }
+  }
+  
+  return integral;
+}
+
+/**
+ * Get sum of rectangular area using integral image (O(1) operation)
+ */
+function getAreaSum(integral, x1, y1, x2, y2) {
+  return integral[y2][x2] - 
+         integral[y1][x2] - 
+         integral[y2][x1] + 
+         integral[y1][x1];
+}
+
+/**
+ * Optimized adaptive threshold using integral image
+ * Performance improvement: O(n²×blockSize²) → O(n²)
+ */
 export function adaptiveThreshold(imageData, blockSize = 11, C = 2) {
+  const { data, width, height } = imageData;
+  const binary = Array(height).fill().map(() => Array(width).fill(0));
+  const halfBlock = Math.floor(blockSize / 2);
+  
+  // Compute integral image once (O(n²))
+  const integral = computeIntegralImage(imageData);
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      // Calculate bounds for the block
+      const x1 = Math.max(0, x - halfBlock);
+      const y1 = Math.max(0, y - halfBlock);
+      const x2 = Math.min(width, x + halfBlock + 1);
+      const y2 = Math.min(height, y + halfBlock + 1);
+      
+      // Get area sum in O(1) time using integral image
+      const sum = getAreaSum(integral, x1, y1, x2, y2);
+      const count = (x2 - x1) * (y2 - y1);
+      const mean = sum / count;
+      
+      // Get current pixel grayscale value
+      const i = (y * width + x) * 4;
+      const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      
+      binary[y][x] = gray < (mean - C) ? 1 : 0;
+    }
+  }
+  
+  return binary;
+}
+
+/**
+ * Legacy adaptive threshold (kept for compatibility)
+ * Use adaptiveThreshold() for better performance
+ */
+export function adaptiveThresholdLegacy(imageData, blockSize = 11, C = 2) {
   const { data, width, height } = imageData;
   const binary = Array(height).fill().map(() => Array(width).fill(0));
   const halfBlock = Math.floor(blockSize / 2);

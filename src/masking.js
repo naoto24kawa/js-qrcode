@@ -4,6 +4,7 @@
  */
 
 import { MASK_PATTERNS } from './constants.js';
+import { QRSpecUtils } from './qr-spec-utils.js';
 
 // Mask evaluation penalty constants
 const RULE1_BASE_PENALTY = 3;
@@ -288,80 +289,9 @@ export class QRMasking {
 
   /**
    * Check if module position is reserved (not data)
+   * Uses shared QRSpecUtils for consistency
    */
   isReservedModule(row, col, size) {
-    const version = Math.floor((size - 21) / 4) + 1;
-    
-    // Finder patterns and separators (9x9 areas)
-    if ((row <= 8 && col <= 8) || 
-        (row <= 8 && col >= size - 8) || 
-        (row >= size - 8 && col <= 8)) {
-      return true;
-    }
-    
-    // Timing patterns
-    if (row === 6 || col === 6) {
-      return true;
-    }
-    
-    // Dark module (version dependent)
-    if (row === 4 * version + 9 && col === 8) {
-      return true;
-    }
-    
-    // Format information areas - Complete implementation
-    // Upper horizontal format info (row 8, cols 0-8 and size-8 to size-1)
-    if (row === 8 && (col <= 8 || col >= size - 8)) {
-      return true;
-    }
-    
-    // Left vertical format info (col 8, rows 0-8 and size-7 to size-1)
-    if (col === 8 && (row <= 8 || row >= size - 7)) {
-      return true;
-    }
-    
-    // Alignment patterns for version 2+
-    if (version >= 2) {
-      const alignmentCenters = this.getAlignmentPatternCenters(version);
-      for (const centerRow of alignmentCenters) {
-        for (const centerCol of alignmentCenters) {
-          // Skip if overlaps with finder pattern
-          if ((centerRow <= 8 && centerCol <= 8) || 
-              (centerRow <= 8 && centerCol >= size - 8) || 
-              (centerRow >= size - 8 && centerCol <= 8)) {
-            continue;
-          }
-          
-          if (Math.abs(row - centerRow) <= 2 && Math.abs(col - centerCol) <= 2) {
-            return true;
-          }
-        }
-      }
-    }
-    
-    return false;
-  }
-
-  getAlignmentPatternCenters(version) {
-    // QR Code specification alignment pattern positions
-    const alignmentPatternTable = {
-      1: [],
-      2: [6, 18],
-      3: [6, 22],
-      4: [6, 26],
-      5: [6, 30],
-      6: [6, 34],
-      7: [6, 22, 38],
-      8: [6, 24, 42],
-      9: [6, 26, 46],
-      10: [6, 28, 50],
-      11: [6, 30, 54],
-      12: [6, 32, 58],
-      13: [6, 34, 62],
-      14: [6, 26, 46, 66],
-      15: [6, 26, 48, 70]
-    };
-    
-    return alignmentPatternTable[version] || [];
+    return QRSpecUtils.isReservedModule(row, col, size);
   }
 }

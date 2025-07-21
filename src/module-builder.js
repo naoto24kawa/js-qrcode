@@ -1,5 +1,6 @@
 import { MODULE_SIZES } from './constants.js';
 import { QRPatternBuilder } from './pattern-builder.js';
+import { QRSpecUtils } from './qr-spec-utils.js';
 
 export class QRModuleBuilder {
   constructor() {
@@ -17,7 +18,7 @@ export class QRModuleBuilder {
   }
 
   calculateSize(version) {
-    return MODULE_SIZES.BASE_SIZE + (version - 1) * MODULE_SIZES.VERSION_INCREMENT;
+    return QRSpecUtils.calculateQRSize(version);
   }
 
   createEmptyMatrix(size) {
@@ -87,92 +88,6 @@ export class QRModuleBuilder {
   }
 
   isReservedModule(row, col, size, version = 1) {
-    if (row < 0 || row >= size || col < 0 || col >= size) return true;
-    
-    return this.isFinderArea(row, col, size) ||
-           this.isTimingPattern(row, col) ||
-           this.isDarkModule(row, col, version) ||
-           this.isFormatInfo(row, col, size) ||
-           this.isAlignmentPattern(row, col, version, size);
-  }
-
-  isFinderArea(row, col, size) {
-    // Finder pattern areas (including separators) - 9x9 areas
-    return (row <= 8 && col <= 8) || 
-           (row <= 8 && col >= size - 8) || 
-           (row >= size - 8 && col <= 8);
-  }
-
-  isTimingPattern(row, col) {
-    return row === 6 || col === 6;
-  }
-
-  isDarkModule(row, col, version) {
-    return row === 4 * version + 9 && col === 8;
-  }
-
-  isFormatInfo(row, col, size) {
-    // Upper horizontal format info (row 8, cols 0-8 and size-8 to size-1)
-    if (row === 8 && (col <= 8 || col >= size - 8)) {
-      return true;
-    }
-    
-    // Left vertical format info (col 8, rows 0-8 and size-7 to size-1)
-    if (col === 8 && (row <= 8 || row >= size - 7)) {
-      return true;
-    }
-    
-    return false;
-  }
-
-  isAlignmentPattern(row, col, version, size) {
-    if (version < 2) return false;
-    
-    const centers = this.getAlignmentPatternCenters(version);
-    for (const centerRow of centers) {
-      for (const centerCol of centers) {
-        if (!this.isFinderPatternArea(centerRow, centerCol, size)) {
-          if (Math.abs(row - centerRow) <= 2 && Math.abs(col - centerCol) <= 2) {
-            return true;
-          }
-        }
-      }
-    }
-    
-    return false;
-  }
-
-  getAlignmentPatternCenters(version) {
-    // QR Code specification alignment pattern positions
-    const alignmentPatternTable = {
-      1: [],
-      2: [6, 18],
-      3: [6, 22],
-      4: [6, 26],
-      5: [6, 30],
-      6: [6, 34],
-      7: [6, 22, 38],
-      8: [6, 24, 42],
-      9: [6, 26, 46],
-      10: [6, 28, 50],
-      11: [6, 30, 54],
-      12: [6, 32, 58],
-      13: [6, 34, 62],
-      14: [6, 26, 46, 66],
-      15: [6, 26, 48, 70],
-      16: [6, 26, 50, 74],
-      17: [6, 30, 54, 78],
-      18: [6, 30, 56, 82],
-      19: [6, 30, 58, 86],
-      20: [6, 34, 62, 90]
-    };
-    
-    return alignmentPatternTable[version] || [];
-  }
-
-  isFinderPatternArea(row, col, size) {
-    return (row <= 8 && col <= 8) || 
-           (row <= 8 && col >= size - 8) || 
-           (row >= size - 8 && col <= 8);
+    return QRSpecUtils.isReservedModule(row, col, size, version);
   }
 }
