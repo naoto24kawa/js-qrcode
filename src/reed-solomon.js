@@ -212,9 +212,9 @@ export class QRErrorCorrection {
       throw new Error(`Unsupported version ${version} or error correction level ${errorCorrectionLevel}`);
     }
 
-    // 参考ライブラリ互換性: Hレベルの特別処理
+    // Reference library compatibility: H level special handling
     if (errorCorrectionLevel === 'H' && version === 1 && dataBytes.length === 9) {
-      // 参考ライブラリのHレベル完全データを再現
+      // Reproduces reference library's H level complete data
       return [0x12, 0x59, 0x31, 0xaf, 0x76, 0x3f, 0xa8, 0x5d, 0x0a, 
               0xb7, 0x5a, 0xc7, 0xbd, 0x6a, 0x75, 0x0c, 0x6b, 0x77, 
               0x9a, 0x87, 0x35, 0x9c, 0xa2, 0x24, 0xf9, 0x03];
@@ -237,10 +237,10 @@ export class QRErrorCorrection {
   padData(data, targetLength) {
     const result = [...data];
     
-    // QRコード仕様に従った正確なパディング
-    // 注意：この関数に渡される data は既にバイト単位
+    // Accurate padding according to QR Code specification
+    // Note: data passed to this function is already in bytes
     
-    // パディングバイトを追加（236, 17の交互）
+    // Add padding bytes (alternating 236, 17)
     const padBytes = [236, 17]; // 0xEC, 0x11
     let padIndex = 0;
     
@@ -253,8 +253,8 @@ export class QRErrorCorrection {
   }
 
   processMultipleBlocks(data, dataCodewords, eccCodewords, blocks) {
-    // QR仕様に従った正確なブロック分割
-    // Version 3, Level H: 2ブロック、各ブロック13バイト
+    // Accurate block division according to QR specification
+    // Version 3, Level H: 2 blocks, 13 bytes each block
     const blockSize = Math.floor(dataCodewords / blocks);
     const remainderSize = dataCodewords % blocks;
     
@@ -263,23 +263,23 @@ export class QRErrorCorrection {
     
     let dataIndex = 0;
     
-    // データを正確に分割
+    // Divide data accurately
     for (let i = 0; i < blocks; i++) {
-      // 最初のブロックは基本サイズ、残りのブロックは+1（必要に応じて）
+      // First block is base size, remaining blocks are +1 (if needed)
       const currentBlockSize = blockSize + (i < remainderSize ? 1 : 0);
       const blockData = data.slice(dataIndex, dataIndex + currentBlockSize);
       dataIndex += currentBlockSize;
       
-      // エラー訂正符号を生成（元データは保持）
-      const eccPerBlock = eccCodewords / blocks; // 各ブロックのエラー訂正数
+      // Generate error correction codes (preserve original data)
+      const eccPerBlock = eccCodewords / blocks; // Error correction count per block
       const encoded = this.encoder.encode(blockData, eccPerBlock);
-      const eccData = encoded.slice(blockData.length); // エラー訂正部分のみ取得
+      const eccData = encoded.slice(blockData.length); // Get only error correction part
       
-      dataBlocks.push(blockData);  // 元データを保持
+      dataBlocks.push(blockData);  // Preserve original data
       eccBlocks.push(eccData);
     }
 
-    // データブロックのインターリーブ
+    // Data block interleaving
     const interleavedData = [];
     const maxDataLength = Math.max(...dataBlocks.map(block => block.length));
     
@@ -291,7 +291,7 @@ export class QRErrorCorrection {
       }
     }
 
-    // エラー訂正ブロックのインターリーブ
+    // Error correction block interleaving
     const interleavedEcc = [];
     const maxEccLength = Math.max(...eccBlocks.map(block => block.length));
     

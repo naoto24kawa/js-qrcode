@@ -45,7 +45,7 @@ export class QRMasking {
    * Find the best mask pattern by evaluating all 8 patterns
    */
   findBestMask(modules, size, options = {}) {
-    // 強制マスク指定がある場合はそれを使用
+    // Force specific mask if requested
     if (options.forceMask !== undefined) {
       const forcedMask = parseInt(options.forceMask);
       if (forcedMask >= 0 && forcedMask <= 7) {
@@ -53,8 +53,8 @@ export class QRMasking {
       }
     }
 
-    // 参照ライブラリ互換性のためのマスク選択
-    // 特定の環境での一貫した出力を保証するため
+    // Legacy library compatibility mask selection
+    // Ensures consistent output in specific environments
     if (options.legacyCompatibility !== false) {
       const compatibleMasks = {
         'L': 4,  // Low error correction: mask pattern 4

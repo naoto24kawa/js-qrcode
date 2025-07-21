@@ -30,8 +30,9 @@ export class QRDataEncoder {
       }
     }
     
-    // Fallback: estimate version based on data length (30 characters per version average)
-    return Math.min(15, Math.ceil(length / 30));
+    // Fallback: estimate version based on data length (average 30 chars per version)
+    const AVERAGE_CHARS_PER_VERSION = 30;
+    return Math.min(15, Math.ceil(length / AVERAGE_CHARS_PER_VERSION));
   }
 
   getModeIndex(mode) {
@@ -62,9 +63,9 @@ export class QRDataEncoder {
   }
 
   encodeToBytes(data, mode, version, errorCorrectionLevel) {
-    // 参考ライブラリ互換性: Hレベルの特別処理
+    // Reference library compatibility: H level special handling
     if (errorCorrectionLevel === 'H' && data === "Test" && version === 1) {
-      // 参考ライブラリのHレベル実際データを再現
+      // Reproduces reference library's H level actual data
       return [0x12, 0x59, 0x31, 0xaf, 0x76, 0x3f, 0xa8, 0x5d, 0x0a];
     }
     
@@ -82,7 +83,9 @@ export class QRDataEncoder {
     }
     
     // Add padding bytes if needed
-    const paddingBytes = [0xEC, 0x11]; // Standard QR padding bytes
+    const QR_PADDING_BYTE_1 = 0xEC; // 11101100
+    const QR_PADDING_BYTE_2 = 0x11; // 00010001
+    const paddingBytes = [QR_PADDING_BYTE_1, QR_PADDING_BYTE_2];
     let paddingIndex = 0;
     
     while (paddedBits.length < requiredLength * 8) {
@@ -123,12 +126,35 @@ export class QRDataEncoder {
   }
 
   getCharacterCountLength(mode, version) {
+    // Character count indicator lengths according to QR Code specification
+    const CHAR_COUNT_LENGTHS = {
+      NUMERIC: {
+        SMALL: { min: 1, max: 9, bits: 10 },
+        MEDIUM: { min: 10, max: 26, bits: 12 },
+        LARGE: { min: 27, max: 40, bits: 14 }
+      },
+      ALPHANUMERIC: {
+        SMALL: { min: 1, max: 9, bits: 9 },
+        MEDIUM: { min: 10, max: 26, bits: 11 },
+        LARGE: { min: 27, max: 40, bits: 13 }
+      },
+      BYTE: {
+        SMALL: { min: 1, max: 9, bits: 8 },
+        LARGE: { min: 10, max: 40, bits: 16 }
+      }
+    };
+    
     if (mode === QR_MODES.NUMERIC) {
-      return version <= 9 ? 10 : version <= 26 ? 12 : 14;
+      return version <= 9 ? CHAR_COUNT_LENGTHS.NUMERIC.SMALL.bits :
+             version <= 26 ? CHAR_COUNT_LENGTHS.NUMERIC.MEDIUM.bits :
+             CHAR_COUNT_LENGTHS.NUMERIC.LARGE.bits;
     } else if (mode === QR_MODES.ALPHANUMERIC) {
-      return version <= 9 ? 9 : version <= 26 ? 11 : 13;
+      return version <= 9 ? CHAR_COUNT_LENGTHS.ALPHANUMERIC.SMALL.bits :
+             version <= 26 ? CHAR_COUNT_LENGTHS.ALPHANUMERIC.MEDIUM.bits :
+             CHAR_COUNT_LENGTHS.ALPHANUMERIC.LARGE.bits;
     }
-    return version <= 9 ? 8 : 16;
+    return version <= 9 ? CHAR_COUNT_LENGTHS.BYTE.SMALL.bits :
+           CHAR_COUNT_LENGTHS.BYTE.LARGE.bits;
   }
 
   encodeNumeric(data) {
@@ -136,8 +162,13 @@ export class QRDataEncoder {
     for (let i = 0; i < data.length; i += 3) {
       const group = data.slice(i, i + 3);
       const value = parseInt(group, 10);
-      // QR numeric encoding: 3 digits->10 bits, 2 digits->7 bits, 1 digit->4 bits
-      const bitLength = group.length === 3 ? 10 : group.length === 2 ? 7 : 4;
+      // QR numeric encoding bit lengths
+      const NUMERIC_BIT_LENGTHS = {
+        3: 10, // 3 digits -> 10 bits
+        2: 7,  // 2 digits -> 7 bits
+        1: 4   // 1 digit -> 4 bits
+      };
+      const bitLength = NUMERIC_BIT_LENGTHS[group.length] || 4;
       bits += this.padLeft(value.toString(2), bitLength);
     }
     return bits;
@@ -149,13 +180,16 @@ export class QRDataEncoder {
       if (i + 1 < data.length) {
         const val1 = ALPHANUMERIC_CHARS.indexOf(data[i]);
         const val2 = ALPHANUMERIC_CHARS.indexOf(data[i + 1]);
-        // QR alphanumeric encoding: pair of characters -> val1*45 + val2 (11 bits)
-        const value = val1 * 45 + val2;
-        bits += this.padLeft(value.toString(2), 11);
+        // QR alphanumeric encoding: pair of characters -> val1*45 + val2
+        const ALPHANUMERIC_MULTIPLIER = 45;
+        const ALPHANUMERIC_PAIR_BITS = 11;
+        const value = val1 * ALPHANUMERIC_MULTIPLIER + val2;
+        bits += this.padLeft(value.toString(2), ALPHANUMERIC_PAIR_BITS);
       } else {
-        // Single character: 6 bits
+        // Single character encoding
+        const ALPHANUMERIC_SINGLE_BITS = 6;
         const value = ALPHANUMERIC_CHARS.indexOf(data[i]);
-        bits += this.padLeft(value.toString(2), 6);
+        bits += this.padLeft(value.toString(2), ALPHANUMERIC_SINGLE_BITS);
       }
     }
     return bits;
