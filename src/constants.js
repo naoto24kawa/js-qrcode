@@ -19,7 +19,7 @@ export const MAX_DATA_LENGTH = 2900;
 export const VERSION_INFO = {
   MIN_VERSION: 1,
   MAX_VERSION: 40,
-  SUPPORTED_MAX: 15
+  SUPPORTED_MAX: 15  // ライブラリが現在対応しているQRコードバージョンの上限値
 };
 
 export const MODULE_SIZES = {
