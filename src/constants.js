@@ -19,7 +19,7 @@ export const MAX_DATA_LENGTH = 2900;
 export const VERSION_INFO = {
   MIN_VERSION: 1,
   MAX_VERSION: 40,
-  SUPPORTED_MAX: 15  // ライブラリが現在対応しているQRコードバージョンの上限値
+  SUPPORTED_MAX: 15  // Current supported maximum QR code version
 };
 
 export const MODULE_SIZES = {
@@ -34,9 +34,9 @@ export const PATTERN_SIZES = {
 };
 
 export const DEFAULT_OPTIONS = {
-  size: 600,  // スマートフォン読み取り最適化: より大きなサイズ
-  margin: 8,  // スマートフォン読み取り最適化: より大きなクワイエットゾーン
-  errorCorrectionLevel: 'M',  // デフォルトレベル
+  size: 600,  // Larger size optimized for smartphone scanning
+  margin: 8,  // Larger quiet zone optimized for smartphone scanning
+  errorCorrectionLevel: 'M',  // Default error correction level
   color: { dark: '#000000', light: '#FFFFFF' },
   format: 'svg',  // 'svg' or 'png'
   // forceMask: undefined,  // 0-7 to force specific mask pattern
@@ -44,7 +44,7 @@ export const DEFAULT_OPTIONS = {
 };
 
 export const CAPACITY_TABLE = {
-  // ISO/IEC 18004 準拠の容量テーブル [数値, 英数字, バイナリ, 漢字]
+  // ISO/IEC 18004 compliant capacity table [Numeric, Alphanumeric, Binary, Kanji]
   1: { L: [41, 25, 17, 10], M: [34, 20, 14, 8], Q: [27, 16, 11, 7], H: [17, 10, 7, 4] },
   2: { L: [77, 47, 32, 20], M: [63, 38, 26, 16], Q: [48, 29, 20, 12], H: [34, 20, 14, 8] },
   3: { L: [127, 77, 53, 32], M: [101, 61, 42, 26], Q: [77, 47, 32, 20], H: [58, 35, 24, 15] },

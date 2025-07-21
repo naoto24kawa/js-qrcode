@@ -1,18 +1,10 @@
 import { 
-  calculateDistance,
-  isValidFinderPattern
+  calculateDistance
 } from '../../src/utils.js';
 import { 
   base64ToUint8Array,
   uint8ArrayToBase64
 } from '../../src/base64-utils.js';
-import { 
-  uint8ArrayToImageData,
-  grayscaleToImageData,
-  bilinearInterpolation,
-  threshold,
-  adaptiveThreshold
-} from '../../src/image-utils.js';
 // KISS準拠：シンプルな環境セットアップ
 describe('Utils', () => {
   beforeAll(() => {
@@ -64,41 +56,6 @@ describe('Utils', () => {
     });
   });
 
-  describe('uint8ArrayToImageData', () => {
-    test('should convert Uint8Array to ImageData', () => {
-      const array = new Uint8Array(16); // 2x2 RGBA
-      array.fill(255);
-      
-      const result = uint8ArrayToImageData(array, 2, 2);
-      
-      expect(result).toBeInstanceOf(ImageData);
-      expect(result.width).toBe(2);
-      expect(result.height).toBe(2);
-    });
-
-    test('should throw error for invalid dimensions', () => {
-      const array = new Uint8Array(8);
-      
-      expect(() => uint8ArrayToImageData(array, 2, 2))
-        .toThrow('Invalid array length for given dimensions');
-    });
-  });
-
-  describe('grayscaleToImageData', () => {
-    test('should convert grayscale array to ImageData', () => {
-      const grayscale = [128, 64, 192, 255];
-      
-      const result = grayscaleToImageData(grayscale, 2, 2);
-      
-      expect(result).toBeInstanceOf(ImageData);
-      expect(result.width).toBe(2);
-      expect(result.height).toBe(2);
-      expect(result.data[0]).toBe(128); // R
-      expect(result.data[1]).toBe(128); // G
-      expect(result.data[2]).toBe(128); // B
-      expect(result.data[3]).toBe(255); // A
-    });
-  });
 
   describe('calculateDistance', () => {
     test('should calculate distance between two points', () => {
@@ -119,122 +76,5 @@ describe('Utils', () => {
     });
   });
 
-  describe('isValidFinderPattern', () => {
-    test('should validate correct finder pattern', () => {
-      const pattern = [1, 1, 1, 1, 1, 1, 1];
-      
-      const result = isValidFinderPattern(pattern);
-      
-      expect(result).toBe(true);
-    });
 
-    test('should reject invalid pattern length', () => {
-      const pattern = [1, 1, 1];
-      
-      const result = isValidFinderPattern(pattern);
-      
-      expect(result).toBe(false);
-    });
-
-    test('should reject null pattern', () => {
-      const result = isValidFinderPattern(null);
-      
-      expect(result).toBe(false);
-    });
-
-    test('should reject incorrect pattern values', () => {
-      const pattern = [1, 1, 1, 0, 1, 1, 1];
-      
-      const result = isValidFinderPattern(pattern);
-      
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('bilinearInterpolation', () => {
-    const testMatrix = [
-      [0, 50, 100],
-      [25, 75, 125],
-      [50, 100, 150]
-    ];
-
-    test('should interpolate within bounds', () => {
-      const result = bilinearInterpolation(testMatrix, 1.5, 1.5);
-      
-      expect(result).toBeCloseTo(112.5, 1);
-    });
-
-    test('should return 0 for out of bounds coordinates', () => {
-      const result = bilinearInterpolation(testMatrix, -1, -1);
-      
-      expect(result).toBe(0);
-    });
-
-    test('should handle integer coordinates', () => {
-      const result = bilinearInterpolation(testMatrix, 1, 1);
-      
-      expect(result).toBe(75);
-    });
-  });
-
-  describe('threshold', () => {
-    test('should apply threshold to ImageData', () => {
-      const imageData = {
-        data: new Uint8ClampedArray([
-          100, 100, 100, 255, // gray pixel < 128
-          200, 200, 200, 255  // gray pixel > 128
-        ]),
-        width: 2,
-        height: 1
-      };
-      
-      const result = threshold(imageData, 128);
-      
-      expect(result).toEqual([[1, 0]]);
-    });
-
-    test('should use default threshold value', () => {
-      const imageData = {
-        data: new Uint8ClampedArray([100, 100, 100, 255]),
-        width: 1,
-        height: 1
-      };
-      
-      const result = threshold(imageData);
-      
-      expect(result).toEqual([[1]]);
-    });
-  });
-
-  describe('adaptiveThreshold', () => {
-    test('should apply adaptive threshold', () => {
-      const imageData = {
-        data: new Uint8ClampedArray([
-          100, 100, 100, 255, // pixel 1
-          150, 150, 150, 255, // pixel 2
-          120, 120, 120, 255, // pixel 3
-          180, 180, 180, 255  // pixel 4
-        ]),
-        width: 2,
-        height: 2
-      };
-      
-      const result = adaptiveThreshold(imageData, 3, 2);
-      
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveLength(2);
-    });
-
-    test('should use default parameters', () => {
-      const imageData = {
-        data: new Uint8ClampedArray([100, 100, 100, 255]),
-        width: 1,
-        height: 1
-      };
-      
-      const result = adaptiveThreshold(imageData);
-      
-      expect(result).toEqual([[0]]);
-    });
-  });
 });

@@ -340,117 +340,46 @@ export class ErrorFactory {
 }
 
 /**
- * Error analytics and reporting utilities
+ * Simple error tracking for QR code generation
  */
 export class ErrorAnalytics {
   constructor() {
-    this.errors = [];
-    this.patterns = new Map();
-    this.metrics = {
-      total: 0,
-      byType: new Map(),
-      byCode: new Map(),
-      byHour: new Map()
-    };
+    this.errorCount = 0;
+    this.lastError = null;
   }
 
   /**
    * Track error occurrence
    */
   track(error, context = {}) {
-    const errorEntry = {
+    this.errorCount++;
+    this.lastError = {
       error,
       context,
-      timestamp: new Date(),
-      id: this.generateId()
+      timestamp: new Date()
     };
-
-    this.errors.push(errorEntry);
-    this.updateMetrics(error);
-    this.detectPatterns(error, context);
-
-    // Cleanup old entries (keep last 1000)
-    if (this.errors.length > 1000) {
-      this.errors.shift();
-    }
-
-    return errorEntry.id;
   }
 
   /**
-   * Get error statistics
+   * Get basic error statistics
    */
   getStats() {
     return {
-      total: this.metrics.total,
-      byType: Object.fromEntries(this.metrics.byType),
-      byCode: Object.fromEntries(this.metrics.byCode),
-      patterns: Array.from(this.patterns.entries()),
-      recentErrors: this.errors.slice(-10).map(e => ({
-        type: e.error.constructor.name,
-        code: e.error.code,
-        message: e.error.message,
-        timestamp: e.timestamp
-      }))
+      total: this.errorCount,
+      lastError: this.lastError ? {
+        type: this.lastError.error.constructor.name,
+        code: this.lastError.error.code,
+        message: this.lastError.error.message,
+        timestamp: this.lastError.timestamp
+      } : null
     };
-  }
-
-  /**
-   * Get errors by filter
-   */
-  getErrors(filter = {}) {
-    return this.errors.filter(entry => {
-      if (filter.type && entry.error.constructor.name !== filter.type) return false;
-      if (filter.code && entry.error.code !== filter.code) return false;
-      if (filter.since && entry.timestamp < filter.since) return false;
-      if (filter.until && entry.timestamp > filter.until) return false;
-      return true;
-    });
   }
 
   /**
    * Clear error history
    */
   clear() {
-    this.errors.length = 0;
-    this.patterns.clear();
-    this.metrics = {
-      total: 0,
-      byType: new Map(),
-      byCode: new Map(),
-      byHour: new Map()
-    };
-  }
-
-  /**
-   * Update metrics
-   */
-  updateMetrics(error) {
-    this.metrics.total++;
-    
-    const type = error.constructor.name;
-    this.metrics.byType.set(type, (this.metrics.byType.get(type) || 0) + 1);
-    
-    const code = error.code;
-    this.metrics.byCode.set(code, (this.metrics.byCode.get(code) || 0) + 1);
-    
-    const hour = new Date().getHours();
-    this.metrics.byHour.set(hour, (this.metrics.byHour.get(hour) || 0) + 1);
-  }
-
-  /**
-   * Detect error patterns
-   */
-  detectPatterns(error, context) {
-    const pattern = `${error.constructor.name}:${error.code}`;
-    const count = this.patterns.get(pattern) || 0;
-    this.patterns.set(pattern, count + 1);
-  }
-
-  /**
-   * Generate unique ID
-   */
-  generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    this.errorCount = 0;
+    this.lastError = null;
   }
 }
