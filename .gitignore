@@ -96,3 +96,6 @@ playwright-report/
 
 # Optional stylelint cache
 .stylelintcache
+
+# Git worktrees
+worktrees/
