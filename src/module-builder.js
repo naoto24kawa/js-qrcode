@@ -1,4 +1,4 @@
-import { MODULE_SIZES } from './constants.js';
+import { MODULE_SIZES, MODULE_BUILDER_CONSTANTS } from './constants.js';
 import { QRPatternBuilder } from './pattern-builder.js';
 import { QRSpecUtils } from './qr-spec-utils.js';
 
@@ -43,21 +43,21 @@ export class QRModuleBuilder {
     // QR仕様に従ったデータ配置アルゴリズム
     // ISO/IEC 18004:2015 Section 7.7.3 Symbol character placement
     let bitIndex = 0;
-    let direction = -1; // -1: 上向き（下から上へ）, 1: 下向き（上から下へ）
+    let direction = MODULE_BUILDER_CONSTANTS.DIRECTION_UP; // -1: 上向き（下から上へ）, 1: 下向き（上から下へ）
     
     // 右から左へ、2列ずつペアで処理（ジグザグパターン）
-    for (let col = size - 1; col > 0; col -= 2) {
+    for (let col = size - 1; col > 0; col -= MODULE_BUILDER_CONSTANTS.COLUMN_STEP) {
       // タイミングパターンの列6をスキップ（QR仕様の特別ルール）
-      if (col === 6) {
+      if (col === MODULE_BUILDER_CONSTANTS.TIMING_POSITION) {
         col--;
       }
       
       // 各2列ペアで垂直方向にデータを配置
       // 右列→左列の順で配置
       for (let i = 0; i < size; i++) {
-        for (let c = 0; c < 2; c++) {
+        for (let c = 0; c < MODULE_BUILDER_CONSTANTS.COLUMN_STEP; c++) {
           const x = col - c; // 右列（c=0）から左列（c=1）へ
-          const y = direction === -1 ? size - 1 - i : i; // 方向に応じて座標計算
+          const y = direction === MODULE_BUILDER_CONSTANTS.DIRECTION_UP ? size - 1 - i : i; // 方向に応じて座標計算
           
           if (!this.isReservedModule(y, x, size, version)) {
             if (bitIndex < dataBits.length) {
@@ -78,7 +78,7 @@ export class QRModuleBuilder {
 
   addFormatInfoWithMask(modules, size, errorCorrectionLevel, maskPattern) {
     const result = modules.map(row => [...row]);
-    const version = Math.floor((size - 21) / 4) + 1;
+    const version = Math.floor((size - MODULE_SIZES.BASE_SIZE) / MODULE_SIZES.VERSION_INCREMENT) + 1;
     
     this.patternBuilder.addFormatInfo(result, size, errorCorrectionLevel, maskPattern);
     // Ensure dark module is always set after format info

@@ -3,7 +3,7 @@
  * Implements the 8 standard masking patterns and mask evaluation
  */
 
-import { MASK_PATTERNS, MASK_EVALUATION_PENALTIES } from './constants.js';
+import { MASK_PATTERNS, MASK_EVALUATION_PENALTIES, LEGACY_COMPATIBLE_MASKS } from './constants.js';
 import { QRSpecUtils } from './qr-spec-utils.js';
 
 const {
@@ -49,7 +49,8 @@ export class QRMasking {
     // Force specific mask if requested
     if (options.forceMask !== undefined) {
       const forcedMask = parseInt(options.forceMask);
-      if (forcedMask >= 0 && forcedMask <= 7) {
+      const maxMaskPattern = MASK_PATTERNS.length - 1;
+      if (forcedMask >= 0 && forcedMask <= maxMaskPattern) {
         return forcedMask;
       }
     }
@@ -57,16 +58,8 @@ export class QRMasking {
     // Legacy library compatibility mask selection
     // Ensures consistent output in specific environments
     if (options.legacyCompatibility !== false) {
-      const compatibleMasks = {
-        'L': 4,  // Low error correction: mask pattern 4
-        'M': 4,  // Medium error correction: mask pattern 4
-        'Q': 3,  // Quartile error correction: mask pattern 3
-        'H': 1   // High error correction: mask pattern 1 (high compatibility)
-      };
-      
-      if (compatibleMasks[options.errorCorrectionLevel]) {
-        const mask = compatibleMasks[options.errorCorrectionLevel];
-        return mask;
+      if (LEGACY_COMPATIBLE_MASKS[options.errorCorrectionLevel]) {
+        return LEGACY_COMPATIBLE_MASKS[options.errorCorrectionLevel];
       }
     }
 
@@ -74,7 +67,8 @@ export class QRMasking {
     let lowestPenalty = Infinity;
 
     
-    for (let maskPattern = 0; maskPattern < 8; maskPattern++) {
+    const totalMaskPatterns = MASK_PATTERNS.length;
+    for (let maskPattern = 0; maskPattern < totalMaskPatterns; maskPattern++) {
       const maskedModules = this.applyMask(modules, maskPattern, size);
       const penalty = this.evaluateMask(maskedModules, size);
       
@@ -117,49 +111,77 @@ export class QRMasking {
   evaluateRule1(modules, size) {
     let penalty = 0;
     
-    // Check rows
-    for (let row = 0; row < size; row++) {
-      let count = 1;
-      let prevModule = modules[row][0];
-      
-      for (let col = 1; col < size; col++) {
-        if (modules[row][col] === prevModule) {
-          count++;
-        } else {
-          if (count >= RULE1_MIN_CONSECUTIVE) {
-            penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
-          }
-          count = 1;
-          prevModule = modules[row][col];
-        }
-      }
-      if (count >= RULE1_MIN_CONSECUTIVE) {
-        penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
-      }
-    }
+    // Check rows for consecutive modules
+    penalty += this.checkConsecutiveInRows(modules, size);
     
-    // Check columns
-    for (let col = 0; col < size; col++) {
-      let count = 1;
-      let prevModule = modules[0][col];
-      
-      for (let row = 1; row < size; row++) {
-        if (modules[row][col] === prevModule) {
-          count++;
-        } else {
-          if (count >= RULE1_MIN_CONSECUTIVE) {
-            penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
-          }
-          count = 1;
-          prevModule = modules[row][col];
-        }
-      }
-      if (count >= RULE1_MIN_CONSECUTIVE) {
-        penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
-      }
+    // Check columns for consecutive modules
+    penalty += this.checkConsecutiveInColumns(modules, size);
+    
+    return penalty;
+  }
+  
+  /**
+   * Check for consecutive modules in all rows
+   */
+  checkConsecutiveInRows(modules, size) {
+    let penalty = 0;
+    
+    for (let row = 0; row < size; row++) {
+      penalty += this.checkConsecutiveInLine(modules[row]);
     }
     
     return penalty;
+  }
+  
+  /**
+   * Check for consecutive modules in all columns
+   */
+  checkConsecutiveInColumns(modules, size) {
+    let penalty = 0;
+    
+    for (let col = 0; col < size; col++) {
+      const column = [];
+      for (let row = 0; row < size; row++) {
+        column.push(modules[row][col]);
+      }
+      penalty += this.checkConsecutiveInLine(column);
+    }
+    
+    return penalty;
+  }
+  
+  /**
+   * Check for consecutive modules in a single line (row or column)
+   */
+  checkConsecutiveInLine(line) {
+    let penalty = 0;
+    let count = 1;
+    let prevModule = line[0];
+    
+    for (let i = 1; i < line.length; i++) {
+      if (line[i] === prevModule) {
+        count++;
+      } else {
+        penalty += this.calculateConsecutivePenalty(count);
+        count = 1;
+        prevModule = line[i];
+      }
+    }
+    
+    // Check final sequence
+    penalty += this.calculateConsecutivePenalty(count);
+    
+    return penalty;
+  }
+  
+  /**
+   * Calculate penalty for consecutive modules
+   */
+  calculateConsecutivePenalty(count) {
+    if (count >= RULE1_MIN_CONSECUTIVE) {
+      return RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
+    }
+    return 0;
   }
 
   /**

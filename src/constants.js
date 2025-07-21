@@ -27,10 +27,19 @@ export const MODULE_SIZES = {
   VERSION_INCREMENT: 4
 };
 
+// Module builder constants
+export const MODULE_BUILDER_CONSTANTS = {
+  DIRECTION_UP: -1,
+  DIRECTION_DOWN: 1,
+  TIMING_POSITION: 6,
+  COLUMN_STEP: 2
+};
+
 export const PATTERN_SIZES = {
   FINDER: 7,
   ALIGNMENT: 5,
-  TIMING: 1
+  TIMING: 1,
+  FINDER_BOUNDARY_SIZE: 8  // Finder pattern + separator boundary
 };
 
 export const DEFAULT_OPTIONS = {
@@ -41,6 +50,34 @@ export const DEFAULT_OPTIONS = {
   format: 'svg',  // 'svg' or 'png'
   // forceMask: undefined,  // 0-7 to force specific mask pattern
   // legacyCompatibility: false  // true for legacy reader compatibility
+};
+
+// Legacy compatibility mask settings
+export const LEGACY_COMPATIBLE_MASKS = {
+  'L': 4,
+  'M': 4,
+  'Q': 3,
+  'H': 1
+};
+
+// Alignment pattern center positions for each QR code version
+// QR Code specification alignment pattern positions (ISO/IEC 18004)
+export const ALIGNMENT_PATTERN_TABLE = {
+  1: [],
+  2: [6, 18],
+  3: [6, 22],
+  4: [6, 26],  // バージョン4: 33x33サイズ、アライメント位置 (6,26), (26,6), (26,26)
+  5: [6, 30],
+  6: [6, 34],
+  7: [6, 22, 38],
+  8: [6, 24, 42],
+  9: [6, 26, 46],
+  10: [6, 28, 50],
+  11: [6, 30, 54],
+  12: [6, 32, 58],
+  13: [6, 34, 62],
+  14: [6, 26, 46, 66],
+  15: [6, 26, 48, 70]
 };
 
 export const CAPACITY_TABLE = {
@@ -87,6 +124,18 @@ export const MASK_PATTERNS = [
 export const QR_PADDING_BYTES = [0xEC, 0x11]; // 11101100, 00010001
 export const TERMINATOR_MAX_BITS = 4;
 export const AVERAGE_CHARS_PER_VERSION = 30;
+
+// Pattern builder constants
+export const PATTERN_BUILDER_CONSTANTS = {
+  FINDER_PATTERN_SIZE: 7,
+  SEPARATOR_WIDTH: 8,
+  TIMING_START: 8,
+  DARK_MODULE_FORMULA_BASE: 4,
+  DARK_MODULE_FORMULA_OFFSET: 9,
+  FORMAT_INFO_LENGTH: 21,
+  ALIGNMENT_PATTERN_RADIUS: 2,
+  ALIGNMENT_PATTERN_TOTAL_SIZE: 5
+};
 
 // Character count indicator lengths
 export const CHARACTER_COUNT_LENGTHS = {
@@ -150,4 +199,24 @@ export const MASK_EVALUATION_PENALTIES = {
   RULE4_PENALTY_STEP: 10,
   RULE4_DEVIATION_STEP: 5,
   OPTIMAL_DARK_PERCENTAGE: 50
+};
+
+// Format information patterns for QR Code specification
+export const FORMAT_INFO_PATTERNS = {
+  'L': {  // Low error correction (ECL=01)
+    row8: [1,1,0,0,1,1,1,0,0,0,0,0,1,0,0,1,0,1,1,1,1],
+    col8: [1,1,1,1,0,1,1,0,0,0,0,0,0,1,0,1,1,0,0,1,1]
+  },
+  'M': {  // Medium error correction (ECL=00)
+    row8: [1,0,0,0,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1],
+    col8: [1,0,0,1,1,1,1,1,1,0,0,0,0,1,1,0,1,0,0,0,1]
+  },
+  'Q': {  // Quartile error correction (ECL=11)
+    row8: [0,1,1,1,0,1,1,0,0,1,0,1,0,0,0,0,0,0,1,1,0],
+    col8: [0,1,1,0,0,0,1,0,0,0,1,1,0,1,0,1,0,1,1,1,0]
+  },
+  'H': {  // High error correction (ECL=10)
+    row8: [0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,1,0,1],
+    col8: [1,0,1,0,1,0,1,1,0,1,1,0,1,1,0,1,0,0,0,0,0]
+  }
 };
