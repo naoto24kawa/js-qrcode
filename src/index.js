@@ -7,6 +7,8 @@ export { QRMasking } from './masking.js';
 export { SVGRenderer } from './renderers/svg-renderer.js';
 export { PNGRenderer } from './renderers/png-renderer.js';
 export * from './utils.js';
+export * from './base64-utils.js';
+export * from './image-utils.js';
 export * from './errors.js';
 
 import { QRCodeGenerator } from './generator.js';

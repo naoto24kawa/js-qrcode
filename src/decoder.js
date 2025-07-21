@@ -1,10 +1,10 @@
+import { calculateDistance } from './utils.js';
+import { base64ToUint8Array } from './base64-utils.js';
 import { 
-  base64ToUint8Array, 
   parseImageFromBase64, 
   adaptiveThreshold,
-  calculateDistance,
   applyPerspectiveTransform 
-} from './utils.js';
+} from './image-utils.js';
 import { FINDER_PATTERN, MASK_PATTERNS, ALPHANUMERIC_CHARS } from './constants.js';
 import { getFormatInfo } from './format-info.js';
 
@@ -159,26 +159,26 @@ export class QRCodeDecoder {
       throw new Error('Expected 3 finder patterns');
     }
     
-    const [p1, p2, p3] = finderPatterns;
+    const [pattern1, pattern2, pattern3] = finderPatterns;
     
-    const d12 = calculateDistance(p1, p2);
-    const d13 = calculateDistance(p1, p3);
-    const d23 = calculateDistance(p2, p3);
+    const distance12 = calculateDistance(pattern1, pattern2);
+    const distance13 = calculateDistance(pattern1, pattern3);
+    const distance23 = calculateDistance(pattern2, pattern3);
     
     let topLeft, topRight, bottomLeft;
     
-    if (d12 > d13 && d12 > d23) {
-      topLeft = p3;
-      topRight = p1.x > p2.x ? p1 : p2;
-      bottomLeft = p1.x > p2.x ? p2 : p1;
-    } else if (d13 > d23) {
-      topLeft = p2;
-      topRight = p1.x > p3.x ? p1 : p3;
-      bottomLeft = p1.x > p3.x ? p3 : p1;
+    if (distance12 > distance13 && distance12 > distance23) {
+      topLeft = pattern3;
+      topRight = pattern1.x > pattern2.x ? pattern1 : pattern2;
+      bottomLeft = pattern1.x > pattern2.x ? pattern2 : pattern1;
+    } else if (distance13 > distance23) {
+      topLeft = pattern2;
+      topRight = pattern1.x > pattern3.x ? pattern1 : pattern3;
+      bottomLeft = pattern1.x > pattern3.x ? pattern3 : pattern1;
     } else {
-      topLeft = p1;
-      topRight = p2.x > p3.x ? p2 : p3;
-      bottomLeft = p2.x > p3.x ? p3 : p2;
+      topLeft = pattern1;
+      topRight = pattern2.x > pattern3.x ? pattern2 : pattern3;
+      bottomLeft = pattern2.x > pattern3.x ? pattern3 : pattern2;
     }
     
     const bottomRight = {
@@ -195,14 +195,14 @@ export class QRCodeDecoder {
   }
   
   estimateQRSize(corners) {
-    const [tl, tr, bl] = corners;
-    const width = calculateDistance(tl, tr);
-    const height = calculateDistance(tl, bl);
-    const avgSize = (width + height) / 2;
+    const [topLeft, topRight, bottomLeft] = corners;
+    const width = calculateDistance(topLeft, topRight);
+    const height = calculateDistance(topLeft, bottomLeft);
+    const averageSize = (width + height) / 2;
     
-    if (avgSize < 50) return 21;
-    if (avgSize < 100) return 25; 
-    if (avgSize < 150) return 29;
+    if (averageSize < 50) return 21;
+    if (averageSize < 100) return 25; 
+    if (averageSize < 150) return 29;
     return 33;
   }
   
@@ -210,23 +210,23 @@ export class QRCodeDecoder {
     let formatBits = 0;
     
     for (let i = 0; i < 15; i++) {
-      let bit = 0;
+      let currentBit = 0;
       
       if (i < 6) {
-        bit = matrix[8][i];
+        currentBit = matrix[8][i];
       } else if (i < 8) {
-        bit = matrix[8][i + 1];
+        currentBit = matrix[8][i + 1];
       } else {
-        bit = matrix[7 - (i - 8)][8];
+        currentBit = matrix[7 - (i - 8)][8];
       }
       
-      formatBits |= (bit << i);
+      formatBits |= (currentBit << i);
     }
     
     for (const level of ['L', 'M', 'Q', 'H']) {
-      for (let mask = 0; mask < 8; mask++) {
-        if (getFormatInfo(level, mask) === formatBits) {
-          return { errorCorrectionLevel: level, maskPattern: mask };
+      for (let maskIndex = 0; maskIndex < 8; maskIndex++) {
+        if (getFormatInfo(level, maskIndex) === formatBits) {
+          return { errorCorrectionLevel: level, maskPattern: maskIndex };
         }
       }
     }
@@ -236,30 +236,30 @@ export class QRCodeDecoder {
   
   readData(matrix, formatInfo) {
     const size = matrix.length;
-    let bits = '';
-    let up = true;
+    let dataBits = '';
+    let readingUpward = true;
     
-    for (let col = size - 1; col >= 1; col -= 2) {
-      if (col === 6) col--;
+    for (let columnPair = size - 1; columnPair >= 1; columnPair -= 2) {
+      if (columnPair === 6) columnPair--;
       
-      for (let count = 0; count < size; count++) {
-        const row = up ? size - 1 - count : count;
+      for (let rowOffset = 0; rowOffset < size; rowOffset++) {
+        const row = readingUpward ? size - 1 - rowOffset : rowOffset;
         
-        for (let c = 0; c < 2; c++) {
-          const currentCol = col - c;
+        for (let columnOffset = 0; columnOffset < 2; columnOffset++) {
+          const currentCol = columnPair - columnOffset;
           
           if (!this.isReservedModule(row, currentCol, size)) {
-            const bit = matrix[row][currentCol];
-            const maskedBit = this.applyMask(bit, row, currentCol, formatInfo.maskPattern);
-            bits += maskedBit ? '1' : '0';
+            const moduleBit = matrix[row][currentCol];
+            const unmaskedBit = this.applyMask(moduleBit, row, currentCol, formatInfo.maskPattern);
+            dataBits += unmaskedBit ? '1' : '0';
           }
         }
       }
       
-      up = !up;
+      readingUpward = !readingUpward;
     }
     
-    return this.decodeBits(bits);
+    return this.decodeBits(dataBits);
   }
   
   isReservedModule(row, col, size) {
@@ -276,99 +276,99 @@ export class QRCodeDecoder {
     return false;
   }
   
-  applyMask(bit, row, col, maskPattern) {
+  applyMask(moduleBit, row, col, maskPattern) {
     if (maskPattern >= 0 && maskPattern < MASK_PATTERNS.length) {
-      const mask = MASK_PATTERNS[maskPattern](row, col);
-      return bit ^ mask;
+      const maskValue = MASK_PATTERNS[maskPattern](row, col);
+      return moduleBit ^ maskValue;
     }
-    return bit;
+    return moduleBit;
   }
   
-  decodeBits(bits) {
-    if (bits.length < 4) return '';
+  decodeBits(binaryData) {
+    if (binaryData.length < 4) return '';
     
-    const mode = parseInt(bits.substring(0, 4), 2);
-    if (!this.modes[mode]) return '';
+    const encodingMode = parseInt(binaryData.substring(0, 4), 2);
+    if (!this.modes[encodingMode]) return '';
     
-    const modeType = this.modes[mode];
-    const lengthBits = this.getCharacterCountLength(mode, 1);
+    const modeType = this.modes[encodingMode];
+    const characterCountBits = this.getCharacterCountLength(encodingMode, 1);
     
-    if (bits.length < 4 + lengthBits) return '';
+    if (binaryData.length < 4 + characterCountBits) return '';
     
-    const length = parseInt(bits.substring(4, 4 + lengthBits), 2);
-    const dataBits = bits.substring(4 + lengthBits);
+    const dataLength = parseInt(binaryData.substring(4, 4 + characterCountBits), 2);
+    const encodedData = binaryData.substring(4 + characterCountBits);
     
     switch (modeType) {
       case 'NUMERIC':
-        return this.decodeNumeric(dataBits, length);
+        return this.decodeNumeric(encodedData, dataLength);
       case 'ALPHANUMERIC':
-        return this.decodeAlphanumeric(dataBits, length);
+        return this.decodeAlphanumeric(encodedData, dataLength);
       case 'BYTE':
-        return this.decodeByte(dataBits, length);
+        return this.decodeByte(encodedData, dataLength);
       default:
         return '';
     }
   }
   
-  getCharacterCountLength(mode, version) {
-    if (mode === 1) { // NUMERIC
-      return version <= 9 ? 10 : version <= 26 ? 12 : 14;
-    } else if (mode === 2) { // ALPHANUMERIC
-      return version <= 9 ? 9 : version <= 26 ? 11 : 13;
+  getCharacterCountLength(encodingMode, qrVersion) {
+    if (encodingMode === 1) { // NUMERIC
+      return qrVersion <= 9 ? 10 : qrVersion <= 26 ? 12 : 14;
+    } else if (encodingMode === 2) { // ALPHANUMERIC
+      return qrVersion <= 9 ? 9 : qrVersion <= 26 ? 11 : 13;
     } else { // BYTE
-      return version <= 9 ? 8 : version <= 26 ? 16 : 16;
+      return qrVersion <= 9 ? 8 : qrVersion <= 26 ? 16 : 16;
     }
   }
   
-  decodeNumeric(bits, length) {
-    let result = '';
+  decodeNumeric(binaryData, characterCount) {
+    let decodedText = '';
     
-    for (let i = 0; i < length; i += 3) {
-      const remaining = Math.min(3, length - i);
-      const bitLength = remaining === 3 ? 10 : remaining === 2 ? 7 : 4;
+    for (let charIndex = 0; charIndex < characterCount; charIndex += 3) {
+      const remainingChars = Math.min(3, characterCount - charIndex);
+      const requiredBits = remainingChars === 3 ? 10 : remainingChars === 2 ? 7 : 4;
       
-      if (bits.length < bitLength) break;
+      if (binaryData.length < requiredBits) break;
       
-      const value = parseInt(bits.substring(0, bitLength), 2);
-      result += value.toString().padStart(remaining, '0');
-      bits = bits.substring(bitLength);
+      const numericValue = parseInt(binaryData.substring(0, requiredBits), 2);
+      decodedText += numericValue.toString().padStart(remainingChars, '0');
+      binaryData = binaryData.substring(requiredBits);
     }
     
-    return result.substring(0, length);
+    return decodedText.substring(0, characterCount);
   }
   
-  decodeAlphanumeric(bits, length) {
-    let result = '';
+  decodeAlphanumeric(binaryData, characterCount) {
+    let decodedText = '';
     
-    for (let i = 0; i < length; i += 2) {
-      const remaining = Math.min(2, length - i);
+    for (let charIndex = 0; charIndex < characterCount; charIndex += 2) {
+      const remainingChars = Math.min(2, characterCount - charIndex);
       
-      if (remaining === 2) {
-        if (bits.length < 11) break;
-        const value = parseInt(bits.substring(0, 11), 2);
-        result += ALPHANUMERIC_CHARS[Math.floor(value / 45)] + ALPHANUMERIC_CHARS[value % 45];
-        bits = bits.substring(11);
+      if (remainingChars === 2) {
+        if (binaryData.length < 11) break;
+        const encodedValue = parseInt(binaryData.substring(0, 11), 2);
+        decodedText += ALPHANUMERIC_CHARS[Math.floor(encodedValue / 45)] + ALPHANUMERIC_CHARS[encodedValue % 45];
+        binaryData = binaryData.substring(11);
       } else {
-        if (bits.length < 6) break;
-        const value = parseInt(bits.substring(0, 6), 2);
-        result += ALPHANUMERIC_CHARS[value];
-        bits = bits.substring(6);
+        if (binaryData.length < 6) break;
+        const encodedValue = parseInt(binaryData.substring(0, 6), 2);
+        decodedText += ALPHANUMERIC_CHARS[encodedValue];
+        binaryData = binaryData.substring(6);
       }
     }
     
-    return result.substring(0, length);
+    return decodedText.substring(0, characterCount);
   }
   
-  decodeByte(bits, length) {
-    let result = '';
+  decodeByte(binaryData, byteCount) {
+    let decodedText = '';
     
-    for (let i = 0; i < length; i++) {
-      if (bits.length < 8) break;
-      const value = parseInt(bits.substring(0, 8), 2);
-      result += String.fromCharCode(value);
-      bits = bits.substring(8);
+    for (let byteIndex = 0; byteIndex < byteCount; byteIndex++) {
+      if (binaryData.length < 8) break;
+      const byteValue = parseInt(binaryData.substring(0, 8), 2);
+      decodedText += String.fromCharCode(byteValue);
+      binaryData = binaryData.substring(8);
     }
     
-    return result;
+    return decodedText;
   }
 }

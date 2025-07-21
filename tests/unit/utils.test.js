@@ -1,14 +1,18 @@
 import { 
+  calculateDistance,
+  isValidFinderPattern
+} from '../../src/utils.js';
+import { 
   base64ToUint8Array,
+  uint8ArrayToBase64
+} from '../../src/base64-utils.js';
+import { 
   uint8ArrayToImageData,
   grayscaleToImageData,
-  uint8ArrayToBase64,
-  calculateDistance,
-  isValidFinderPattern,
   bilinearInterpolation,
   threshold,
   adaptiveThreshold
-} from '../../src/utils.js';
+} from '../../src/image-utils.js';
 // KISS準拠：シンプルな環境セットアップ
 describe('Utils', () => {
   beforeAll(() => {

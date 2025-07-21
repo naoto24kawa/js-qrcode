@@ -5,6 +5,17 @@
 
 import { MASK_PATTERNS } from './constants.js';
 
+// Mask evaluation penalty constants
+const RULE1_BASE_PENALTY = 3;
+const RULE1_MIN_CONSECUTIVE = 5;
+const RULE2_BLOCK_PENALTY = 3;
+const RULE3_FINDER_PATTERN_PENALTY = 40;
+const RULE3_PATTERN_LENGTH = 7;
+const RULE3_LIGHT_PADDING = 4;
+const RULE4_PENALTY_STEP = 10;
+const RULE4_DEVIATION_STEP = 5;
+const OPTIMAL_DARK_PERCENTAGE = 50;
+
 export class QRMasking {
   constructor() {
     this.maskPatterns = MASK_PATTERNS;
@@ -37,7 +48,6 @@ export class QRMasking {
     if (options.forceMask !== undefined) {
       const forcedMask = parseInt(options.forceMask);
       if (forcedMask >= 0 && forcedMask <= 7) {
-        console.log(`マスク${forcedMask}を強制使用`);
         return forcedMask;
       }
     }
@@ -53,7 +63,6 @@ export class QRMasking {
       
       if (compatibleMasks[options.errorCorrectionLevel]) {
         const mask = compatibleMasks[options.errorCorrectionLevel];
-        console.log(`${options.errorCorrectionLevel}レベル互換性モード: マスク${mask}を選択`);
         return mask;
       }
     }
@@ -61,13 +70,11 @@ export class QRMasking {
     let bestMask = 0;
     let lowestPenalty = Infinity;
 
-    console.log('\nマスク評価実行中...');
     
     for (let maskPattern = 0; maskPattern < 8; maskPattern++) {
       const maskedModules = this.applyMask(modules, maskPattern, size);
       const penalty = this.evaluateMask(maskedModules, size);
       
-      console.log(`  マスク${maskPattern}: ペナルティ=${penalty}`);
       
       if (penalty < lowestPenalty) {
         lowestPenalty = penalty;
@@ -75,7 +82,6 @@ export class QRMasking {
       }
     }
 
-    console.log(`最適マスク選択: ${bestMask} (ペナルティ=${lowestPenalty})`);
     return bestMask;
   }
 
@@ -115,15 +121,15 @@ export class QRMasking {
         if (modules[row][col] === prevModule) {
           count++;
         } else {
-          if (count >= 5) {
-            penalty += 3 + (count - 5);
+          if (count >= RULE1_MIN_CONSECUTIVE) {
+            penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
           }
           count = 1;
           prevModule = modules[row][col];
         }
       }
-      if (count >= 5) {
-        penalty += 3 + (count - 5);
+      if (count >= RULE1_MIN_CONSECUTIVE) {
+        penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
       }
     }
     
@@ -136,15 +142,15 @@ export class QRMasking {
         if (modules[row][col] === prevModule) {
           count++;
         } else {
-          if (count >= 5) {
-            penalty += 3 + (count - 5);
+          if (count >= RULE1_MIN_CONSECUTIVE) {
+            penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
           }
           count = 1;
           prevModule = modules[row][col];
         }
       }
-      if (count >= 5) {
-        penalty += 3 + (count - 5);
+      if (count >= RULE1_MIN_CONSECUTIVE) {
+        penalty += RULE1_BASE_PENALTY + (count - RULE1_MIN_CONSECUTIVE);
       }
     }
     
@@ -163,7 +169,7 @@ export class QRMasking {
         if (modules[row][col + 1] === color &&
             modules[row + 1][col] === color &&
             modules[row + 1][col + 1] === color) {
-          penalty += 3;
+          penalty += RULE2_BLOCK_PENALTY;
         }
       }
     }
@@ -183,13 +189,13 @@ export class QRMasking {
     
     // Check rows
     for (let row = 0; row < size; row++) {
-      for (let col = 0; col <= size - 7; col++) {
+      for (let col = 0; col <= size - RULE3_PATTERN_LENGTH; col++) {
         if (this.matchesPattern(modules, row, col, pattern1, 'horizontal') ||
             this.matchesPattern(modules, row, col, pattern2, 'horizontal')) {
           // Check for 4 light modules before or after the pattern
-          if ((col >= 4 && this.allSameColor(modules, row, col - 4, 4, false, 'horizontal')) ||
-              (col + 7 + 4 <= size && this.allSameColor(modules, row, col + 7, 4, false, 'horizontal'))) {
-            penalty += 40;
+          if ((col >= RULE3_LIGHT_PADDING && this.allSameColor(modules, row, col - RULE3_LIGHT_PADDING, RULE3_LIGHT_PADDING, false, 'horizontal')) ||
+              (col + RULE3_PATTERN_LENGTH + RULE3_LIGHT_PADDING <= size && this.allSameColor(modules, row, col + RULE3_PATTERN_LENGTH, RULE3_LIGHT_PADDING, false, 'horizontal'))) {
+            penalty += RULE3_FINDER_PATTERN_PENALTY;
           }
         }
       }
@@ -197,13 +203,13 @@ export class QRMasking {
     
     // Check columns
     for (let col = 0; col < size; col++) {
-      for (let row = 0; row <= size - 7; row++) {
+      for (let row = 0; row <= size - RULE3_PATTERN_LENGTH; row++) {
         if (this.matchesPattern(modules, row, col, pattern1, 'vertical') ||
             this.matchesPattern(modules, row, col, pattern2, 'vertical')) {
           // Check for 4 light modules before or after the pattern
-          if ((row >= 4 && this.allSameColor(modules, row - 4, col, 4, false, 'vertical')) ||
-              (row + 7 + 4 <= size && this.allSameColor(modules, row + 7, col, 4, false, 'vertical'))) {
-            penalty += 40;
+          if ((row >= RULE3_LIGHT_PADDING && this.allSameColor(modules, row - RULE3_LIGHT_PADDING, col, RULE3_LIGHT_PADDING, false, 'vertical')) ||
+              (row + RULE3_PATTERN_LENGTH + RULE3_LIGHT_PADDING <= size && this.allSameColor(modules, row + RULE3_PATTERN_LENGTH, col, RULE3_LIGHT_PADDING, false, 'vertical'))) {
+            penalty += RULE3_FINDER_PATTERN_PENALTY;
           }
         }
       }
@@ -228,8 +234,8 @@ export class QRMasking {
     }
     
     const percentage = (darkCount * 100) / totalModules;
-    const deviation = Math.abs(percentage - 50);
-    return Math.floor(deviation / 5) * 10;
+    const deviation = Math.abs(percentage - OPTIMAL_DARK_PERCENTAGE);
+    return Math.floor(deviation / RULE4_DEVIATION_STEP) * RULE4_PENALTY_STEP;
   }
 
   /**
