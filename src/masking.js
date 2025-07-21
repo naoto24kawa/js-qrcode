@@ -3,19 +3,20 @@
  * Implements the 8 standard masking patterns and mask evaluation
  */
 
-import { MASK_PATTERNS } from './constants.js';
+import { MASK_PATTERNS, MASK_EVALUATION_PENALTIES } from './constants.js';
 import { QRSpecUtils } from './qr-spec-utils.js';
 
-// Mask evaluation penalty constants
-const RULE1_BASE_PENALTY = 3;
-const RULE1_MIN_CONSECUTIVE = 5;
-const RULE2_BLOCK_PENALTY = 3;
-const RULE3_FINDER_PATTERN_PENALTY = 40;
-const RULE3_PATTERN_LENGTH = 7;
-const RULE3_LIGHT_PADDING = 4;
-const RULE4_PENALTY_STEP = 10;
-const RULE4_DEVIATION_STEP = 5;
-const OPTIMAL_DARK_PERCENTAGE = 50;
+const {
+  RULE1_BASE_PENALTY,
+  RULE1_MIN_CONSECUTIVE,
+  RULE2_BLOCK_PENALTY,
+  RULE3_FINDER_PATTERN_PENALTY,
+  RULE3_PATTERN_LENGTH,
+  RULE3_LIGHT_PADDING,
+  RULE4_PENALTY_STEP,
+  RULE4_DEVIATION_STEP,
+  OPTIMAL_DARK_PERCENTAGE
+} = MASK_EVALUATION_PENALTIES;
 
 export class QRMasking {
   constructor() {

@@ -82,3 +82,72 @@ export const MASK_PATTERNS = [
   (row, col) => (((row * col) % 2) + ((row * col) % 3)) % 2 === 0,
   (row, col) => (((row + col) % 2) + ((row * col) % 3)) % 2 === 0
 ];
+
+// QR Code encoding constants
+export const QR_PADDING_BYTES = [0xEC, 0x11]; // 11101100, 00010001
+export const TERMINATOR_MAX_BITS = 4;
+export const AVERAGE_CHARS_PER_VERSION = 30;
+
+// Character count indicator lengths
+export const CHARACTER_COUNT_LENGTHS = {
+  NUMERIC: {
+    SMALL: { min: 1, max: 9, bits: 10 },
+    MEDIUM: { min: 10, max: 26, bits: 12 },
+    LARGE: { min: 27, max: 40, bits: 14 }
+  },
+  ALPHANUMERIC: {
+    SMALL: { min: 1, max: 9, bits: 9 },
+    MEDIUM: { min: 10, max: 26, bits: 11 },
+    LARGE: { min: 27, max: 40, bits: 13 }
+  },
+  BYTE: {
+    SMALL: { min: 1, max: 9, bits: 8 },
+    LARGE: { min: 10, max: 40, bits: 16 }
+  }
+};
+
+// Numeric encoding bit lengths
+export const NUMERIC_ENCODING = {
+  THREE_DIGITS: 10,  // 3 digits -> 10 bits
+  TWO_DIGITS: 7,     // 2 digits -> 7 bits
+  ONE_DIGIT: 4       // 1 digit -> 4 bits
+};
+
+// Alphanumeric encoding constants
+export const ALPHANUMERIC_ENCODING = {
+  MULTIPLIER: 45,     // For pair encoding: val1*45 + val2
+  PAIR_BITS: 11,      // Bit length for pair encoding
+  SINGLE_BITS: 6      // Bit length for single character
+};
+
+// Data capacity table (data codewords count)
+export const DATA_CODEWORDS_COUNT = {
+  1: { L: 19, M: 16, Q: 13, H: 9 },
+  2: { L: 34, M: 28, Q: 22, H: 16 },
+  3: { L: 55, M: 44, Q: 34, H: 26 },
+  4: { L: 80, M: 64, Q: 48, H: 36 },
+  5: { L: 108, M: 86, Q: 62, H: 46 },
+  6: { L: 136, M: 108, Q: 72, H: 54 },
+  7: { L: 156, M: 124, Q: 88, H: 66 },
+  8: { L: 194, M: 154, Q: 110, H: 84 },
+  9: { L: 232, M: 182, Q: 132, H: 102 },
+  10: { L: 346, M: 274, Q: 182, H: 132 },
+  11: { L: 384, M: 304, Q: 216, H: 168 },
+  12: { L: 432, M: 342, Q: 254, H: 196 },
+  13: { L: 480, M: 384, Q: 288, H: 224 },
+  14: { L: 532, M: 422, Q: 326, H: 254 },
+  15: { L: 588, M: 466, Q: 360, H: 280 }
+};
+
+// Mask evaluation penalty constants
+export const MASK_EVALUATION_PENALTIES = {
+  RULE1_BASE_PENALTY: 3,
+  RULE1_MIN_CONSECUTIVE: 5,
+  RULE2_BLOCK_PENALTY: 3,
+  RULE3_FINDER_PATTERN_PENALTY: 40,
+  RULE3_PATTERN_LENGTH: 7,
+  RULE3_LIGHT_PADDING: 4,
+  RULE4_PENALTY_STEP: 10,
+  RULE4_DEVIATION_STEP: 5,
+  OPTIMAL_DARK_PERCENTAGE: 50
+};
