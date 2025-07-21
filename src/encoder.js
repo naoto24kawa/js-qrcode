@@ -1,26 +1,26 @@
 import { QRDataEncoder } from './data-encoder.js';
 import { QRModuleBuilder } from './module-builder.js';
-import { QRErrorCorrection } from './reed-solomon.js';
+import { QRErrorCorrection, createQRErrorCorrection } from './reed-solomon-wasm.js';
 import { QRMasking } from './masking.js';
 import { MODULE_SIZES } from './constants.js';
 
 export class QRCodeEncoder {
-  constructor() {
+  constructor(options = {}) {
     this.dataEncoder = new QRDataEncoder();
     this.moduleBuilder = new QRModuleBuilder();
-    this.errorCorrection = new QRErrorCorrection();
+    this.errorCorrection = createQRErrorCorrection(options.forceJS);
     this.masking = new QRMasking();
   }
   
-  encode(data, errorCorrectionLevel = 'M', options = {}) {
+  async encode(data, errorCorrectionLevel = 'M', options = {}) {
     const mode = this.dataEncoder.detectMode(data);
     const version = this.dataEncoder.determineVersion(data, mode, errorCorrectionLevel);
     
     // 1. Encode data to bytes
     const dataBytes = this.dataEncoder.encodeToBytes(data, mode, version, errorCorrectionLevel);
     
-    // 2. Add error correction
-    const codewords = this.errorCorrection.addErrorCorrection(dataBytes, version, errorCorrectionLevel);
+    // 2. Add error correction (may use WASM if available)
+    const codewords = await this.errorCorrection.addErrorCorrection(dataBytes, version, errorCorrectionLevel);
     
     // 3. Convert codewords to bit string
     const dataBits = this.codewordsToBits(codewords);

@@ -4,16 +4,16 @@ import { SVGRenderer } from './renderers/svg-renderer.js';
 import { PNGRenderer } from './renderers/png-renderer.js';
 
 export class QRCodeGenerator {
-  constructor(svgRenderer = new SVGRenderer(), pngRenderer = new PNGRenderer()) {
-    this.encoder = new QRCodeEncoder();
+  constructor(svgRenderer = new SVGRenderer(), pngRenderer = new PNGRenderer(), encoderOptions = {}) {
+    this.encoder = new QRCodeEncoder(encoderOptions);
     this.svgRenderer = svgRenderer;
     this.pngRenderer = pngRenderer;
   }
   
-  generate(data, options = {}) {
+  async generate(data, options = {}) {
     const settings = { ...DEFAULT_OPTIONS, ...options };
     
-    const encoded = this.encoder.encode(data, settings.errorCorrectionLevel, options);
+    const encoded = await this.encoder.encode(data, settings.errorCorrectionLevel, options);
     const { modules, size: moduleSize } = encoded;
     
     let output;
