@@ -3,6 +3,7 @@ import { QRModuleBuilder } from './module-builder.js';
 import { QRErrorCorrection } from './reed-solomon.js';
 import { QRMasking } from './masking.js';
 import { MODULE_SIZES } from './constants.js';
+import { codewordsToBits } from './utils.js';
 
 export class QRCodeEncoder {
   constructor() {
@@ -23,7 +24,7 @@ export class QRCodeEncoder {
     const codewords = this.errorCorrection.addErrorCorrection(dataBytes, version, errorCorrectionLevel);
     
     // 3. Convert codewords to bit string
-    const dataBits = this.codewordsToBits(codewords);
+    const dataBits = codewordsToBits(codewords);
     
     // 4. Generate base modules (without masking)
     const baseModules = this.moduleBuilder.generateModules(dataBits, version, errorCorrectionLevel);
@@ -48,14 +49,6 @@ export class QRCodeEncoder {
       modules: finalModules,
       size
     };
-  }
-
-  codewordsToBits(codewords) {
-    let bits = '';
-    for (const codeword of codewords) {
-      bits += codeword.toString(2).padStart(8, '0');
-    }
-    return bits;
   }
 
 }
