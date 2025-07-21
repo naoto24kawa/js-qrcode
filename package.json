@@ -1,7 +1,7 @@
 {
   "name": "@elchika-inc/js-qrcode",
   "version": "1.0.0",
-  "description": "Pure JavaScript QR code library optimized for Workers and SSR environments",
+  "description": "Pure JavaScript QR code generation library optimized for Workers and SSR environments",
   "type": "module",
   "main": "dist/js-qrcode.js",
   "module": "src/index.js",
@@ -35,8 +35,6 @@
     "ssr",
     "svg",
     "generator",
-    "scanner",
-    "decoder",
     "pure-javascript"
   ],
   "author": "Elchika Inc.",
@@ -91,10 +89,5 @@
       "import": "./src/index.js",
       "require": "./dist/js-qrcode.js"
     }
-  },
-  "dependencies": {
-    "qr.js": "^0.0.0",
-    "qrcode": "^1.5.4",
-    "qrcode-generator": "^2.0.2"
   }
 }

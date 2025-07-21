@@ -50,33 +50,6 @@ export class QRCodeGenerationError extends QRCodeError {
   }
 }
 
-// Decode errors
-export class QRCodeDecodeError extends QRCodeError {
-  static get CODES() {
-    return {
-      INVALID_IMAGE: 'INVALID_IMAGE',
-      NO_QR_FOUND: 'NO_QR_FOUND',
-      FINDER_PATTERN_NOT_FOUND: 'FINDER_PATTERN_NOT_FOUND',
-      FORMAT_INFO_ERROR: 'FORMAT_INFO_ERROR',
-      DATA_DECODE_ERROR: 'DATA_DECODE_ERROR',
-      PERSPECTIVE_CORRECTION_FAILED: 'PERSPECTIVE_CORRECTION_FAILED',
-      PREPROCESSING_FAILED: 'PREPROCESSING_FAILED'
-    };
-  }
-}
-
-// Camera and hardware errors
-export class CameraAccessError extends QRCodeError {
-  static get CODES() {
-    return {
-      PERMISSION_DENIED: 'PERMISSION_DENIED',
-      DEVICE_NOT_FOUND: 'DEVICE_NOT_FOUND',
-      NOT_SUPPORTED: 'NOT_SUPPORTED',
-      HARDWARE_ERROR: 'HARDWARE_ERROR',
-      STREAM_ERROR: 'STREAM_ERROR'
-    };
-  }
-}
 
 // Environment and platform errors
 export class EnvironmentError extends QRCodeError {
@@ -309,31 +282,6 @@ export class ErrorFactory {
     return new QRCodeGenerationError(message, code, errorDetails);
   }
 
-  /**
-   * Create decode error with enhanced context
-   */
-  static createDecodeError(code, message, details = {}, context = null) {
-    const errorDetails = {
-      category: 'decode',
-      userMessage: this.getUserMessage('decode', code),
-      context: context?.build ? context.build() : context,
-      ...details
-    };
-    return new QRCodeDecodeError(message, code, errorDetails);
-  }
-
-  /**
-   * Create camera error with enhanced context
-   */
-  static createCameraError(code, message, details = {}, context = null) {
-    const errorDetails = {
-      category: 'camera',
-      userMessage: this.getUserMessage('camera', code),
-      context: context?.build ? context.build() : context,
-      ...details
-    };
-    return new CameraAccessError(message, code, errorDetails);
-  }
 
   /**
    * Create environment error with enhanced context
@@ -372,22 +320,6 @@ export class ErrorFactory {
         [QRCodeGenerationError.CODES.INVALID_OPTIONS]: 'Invalid options provided for QR code generation.',
         [QRCodeGenerationError.CODES.ENCODING_FAILED]: 'Failed to encode the data into QR code format.',
         [QRCodeGenerationError.CODES.RENDERING_FAILED]: 'Failed to render the QR code to the specified format.'
-      },
-      decode: {
-        [QRCodeDecodeError.CODES.INVALID_IMAGE]: 'The provided image is invalid or cannot be processed.',
-        [QRCodeDecodeError.CODES.NO_QR_FOUND]: 'No QR code found in the image.',
-        [QRCodeDecodeError.CODES.FINDER_PATTERN_NOT_FOUND]: 'QR code finder patterns not detected.',
-        [QRCodeDecodeError.CODES.FORMAT_INFO_ERROR]: 'Cannot read QR code format information.',
-        [QRCodeDecodeError.CODES.DATA_DECODE_ERROR]: 'Failed to decode QR code data.',
-        [QRCodeDecodeError.CODES.PERSPECTIVE_CORRECTION_FAILED]: 'Failed to correct QR code perspective.',
-        [QRCodeDecodeError.CODES.PREPROCESSING_FAILED]: 'Image preprocessing failed.'
-      },
-      camera: {
-        [CameraAccessError.CODES.PERMISSION_DENIED]: 'Camera access permission denied.',
-        [CameraAccessError.CODES.DEVICE_NOT_FOUND]: 'No camera device found.',
-        [CameraAccessError.CODES.NOT_SUPPORTED]: 'Camera access not supported in this environment.',
-        [CameraAccessError.CODES.HARDWARE_ERROR]: 'Camera hardware error.',
-        [CameraAccessError.CODES.STREAM_ERROR]: 'Camera stream error.'
       },
       environment: {
         [EnvironmentError.CODES.UNSUPPORTED_BROWSER]: 'This browser is not supported.',

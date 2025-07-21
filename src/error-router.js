@@ -4,8 +4,6 @@
 
 import { 
   QRCodeGenerationError, 
-  QRCodeDecodeError, 
-  CameraAccessError, 
   EnvironmentError,
   ValidationError,
   ErrorFactory 
@@ -40,20 +38,11 @@ export class ErrorClassifier {
     this.addSeverityRule(QRCodeGenerationError.CODES.INVALID_DATA, ErrorSeverity.MEDIUM);
     this.addSeverityRule(QRCodeGenerationError.CODES.RENDERING_FAILED, ErrorSeverity.HIGH);
     
-    this.addSeverityRule(QRCodeDecodeError.CODES.NO_QR_FOUND, ErrorSeverity.LOW);
-    this.addSeverityRule(QRCodeDecodeError.CODES.FORMAT_INFO_ERROR, ErrorSeverity.HIGH);
-    this.addSeverityRule(QRCodeDecodeError.CODES.DATA_DECODE_ERROR, ErrorSeverity.HIGH);
-    
-    this.addSeverityRule(CameraAccessError.CODES.PERMISSION_DENIED, ErrorSeverity.MEDIUM);
-    this.addSeverityRule(CameraAccessError.CODES.DEVICE_NOT_FOUND, ErrorSeverity.HIGH);
-    
     this.addSeverityRule(EnvironmentError.CODES.UNSUPPORTED_BROWSER, ErrorSeverity.CRITICAL);
     this.addSeverityRule(EnvironmentError.CODES.SECURITY_RESTRICTION, ErrorSeverity.HIGH);
 
     // Category classification
     this.addCategoryRule(error => error instanceof QRCodeGenerationError, 'generation');
-    this.addCategoryRule(error => error instanceof QRCodeDecodeError, 'decode');
-    this.addCategoryRule(error => error instanceof CameraAccessError, 'camera');
     this.addCategoryRule(error => error instanceof EnvironmentError, 'environment');
     this.addCategoryRule(error => error instanceof ValidationError, 'validation');
   }
@@ -116,8 +105,6 @@ export class ErrorClassifier {
     const recoverableCodes = [
       QRCodeGenerationError.CODES.DATA_TOO_LONG,
       QRCodeGenerationError.CODES.INVALID_OPTIONS,
-      QRCodeDecodeError.CODES.NO_QR_FOUND,
-      CameraAccessError.CODES.PERMISSION_DENIED,
       ValidationError.CODES.INVALID_PARAMETER
     ];
     
@@ -130,9 +117,6 @@ export class ErrorClassifier {
   isUserFacing(error) {
     const userFacingCodes = [
       QRCodeGenerationError.CODES.DATA_TOO_LONG,
-      QRCodeDecodeError.CODES.NO_QR_FOUND,
-      CameraAccessError.CODES.PERMISSION_DENIED,
-      CameraAccessError.CODES.DEVICE_NOT_FOUND,
       EnvironmentError.CODES.UNSUPPORTED_BROWSER
     ];
     
@@ -144,9 +128,7 @@ export class ErrorClassifier {
    */
   isRetryable(error) {
     const retryableCodes = [
-      QRCodeGenerationError.CODES.RENDERING_FAILED,
-      QRCodeDecodeError.CODES.PREPROCESSING_FAILED,
-      CameraAccessError.CODES.STREAM_ERROR
+      QRCodeGenerationError.CODES.RENDERING_FAILED
     ];
     
     return retryableCodes.includes(error.code);
@@ -176,8 +158,6 @@ export class ErrorRouter {
 
     // Route by category
     this.route({ category: 'generation' }, this.handleGenerationError);
-    this.route({ category: 'decode' }, this.handleDecodeError);
-    this.route({ category: 'camera' }, this.handleCameraError);
     this.route({ category: 'environment' }, this.handleEnvironmentError);
 
     // Route by recoverability
@@ -273,21 +253,6 @@ export class ErrorRouter {
     return error;
   }
 
-  async handleDecodeError(error, context) {
-    // Decode-specific handling
-    if (error.code === QRCodeDecodeError.CODES.NO_QR_FOUND) {
-      return this.suggestImageOptimization(error, context);
-    }
-    return error;
-  }
-
-  async handleCameraError(error, context) {
-    // Camera-specific handling
-    if (error.code === CameraAccessError.CODES.PERMISSION_DENIED) {
-      return this.provideCameraPermissionGuidance(error, context);
-    }
-    return error;
-  }
 
   async handleEnvironmentError(error, context) {
     // Environment-specific handling
@@ -317,14 +282,6 @@ export class ErrorRouter {
         suggestions.push('Try reducing the data length');
         suggestions.push('Use a higher error correction level');
         break;
-      case QRCodeDecodeError.CODES.NO_QR_FOUND:
-        suggestions.push('Ensure the image contains a clear QR code');
-        suggestions.push('Try improving image quality and lighting');
-        break;
-      case CameraAccessError.CODES.PERMISSION_DENIED:
-        suggestions.push('Grant camera permissions in browser settings');
-        suggestions.push('Reload the page and allow camera access');
-        break;
     }
 
     return suggestions;
@@ -346,27 +303,4 @@ export class ErrorRouter {
     return error;
   }
 
-  suggestImageOptimization(error, context) {
-    error.imageOptimization = {
-      suggestions: [
-        'Ensure good lighting conditions',
-        'Hold camera steady',
-        'Position QR code clearly in frame',
-        'Clean camera lens'
-      ]
-    };
-    return error;
-  }
-
-  provideCameraPermissionGuidance(error, context) {
-    error.permissionGuidance = {
-      steps: [
-        'Click on the camera icon in address bar',
-        'Select "Always allow" for camera access',
-        'Refresh the page',
-        'Grant permission when prompted'
-      ]
-    };
-    return error;
-  }
 }
