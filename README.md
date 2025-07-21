@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/@elchika-inc/js-qrcode.svg)](https://badge.fury.io/js/@elchika-inc/js-qrcode)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A pure JavaScript QR code library optimized for Workers environments and SSR. Provides QR code generation (SVG format) and reading functionality without external dependencies, featuring advanced error handling and analytics.
+A pure JavaScript QR code library optimized for Workers environments and SSR. Provides QR code generation (SVG format) without external dependencies, featuring advanced error handling and analytics.
 
 > 🇯🇵 **日本語版README**: [README.ja.md](./README.ja.md)
 
@@ -12,7 +12,6 @@ A pure JavaScript QR code library optimized for Workers environments and SSR. Pr
 - ✨ **Workers Optimized**: Compatible with Cloudflare Workers, Vercel Edge Runtime, Netlify Edge Functions
 - 🚀 **High Performance**: Lightweight with no external dependencies, cold start optimized
 - 📱 **SVG Output**: Scalable and lightweight QR code generation
-- 🔍 **QR Reading**: Image-based QR code reading support
 - 🌐 **Universal**: Works in SSR, SSG, and browser environments
 - 🛡️ **TypeScript**: Full type definition files included
 - 📦 **Lightweight**: Minimal bundle size
@@ -57,18 +56,6 @@ const customSvg = QRCode.generate('https://example.com', {
 });
 ```
 
-### QR Code Reading
-
-```javascript
-import QRCode from '@elchika-inc/js-qrcode';
-
-// Read from ImageData
-const result = await QRCode.decode(imageData);
-console.log(result.data); // "Decoded text"
-
-// Read from Base64 image
-const base64Result = await QRCode.decode('data:image/png;base64,...');
-```
 
 ### Advanced Error Handling
 
@@ -196,23 +183,6 @@ export default async function handler(request) {
 }
 ```
 
-### Browser Environment with Camera Scanning
-
-```javascript
-import QRCode from '@elchika-inc/js-qrcode';
-
-// Use only in environments with camera access
-const scanner = new QRCode.Scanner(videoElement);
-
-try {
-  await scanner.start();
-  scanner.on('decode', (result) => {
-    console.log('Scan result:', result.data);
-  });
-} catch (error) {
-  console.error('Camera access error:', error);
-}
-```
 
 ## API Reference
 
@@ -243,25 +213,6 @@ Advanced QR code generation with error analytics and handling (asynchronous).
 
 **Returns:** Promise<string> - SVG format string (or object if `returnObject: true`)
 
-### Core Reading Methods
-
-#### QRCode.decode(data, options)
-
-Basic QR code reading.
-
-**Parameters:**
-- `data` (ImageData | string | Uint8Array): Image data
-- `options` (object, optional): Decode options
-
-**Returns:** Promise<object> - Decoded result with `data` property
-
-#### QRCode.decodeWithAnalytics(data, options)
-
-Advanced QR code reading with error analytics.
-
-**Parameters:** Same as `decode()` method
-
-**Returns:** Promise<object> - Decoded result with enhanced error context
 
 ### Error Handling API
 
@@ -335,7 +286,7 @@ Classify error by severity, category, and recoverability.
 ```javascript
 {
   severity: 'low' | 'medium' | 'high' | 'critical',
-  category: 'generation' | 'decode' | 'camera' | 'environment' | 'validation',
+  category: 'generation' | 'environment' | 'validation',
   recoverable: boolean,
   userFacing: boolean,
   retryable: boolean
@@ -422,10 +373,6 @@ try {
 **Available Error Types:**
 - `QRCodeGenerationError`: QR code generation errors
   - `INVALID_DATA`, `DATA_TOO_LONG`, `INVALID_OPTIONS`, `ENCODING_FAILED`, `RENDERING_FAILED`
-- `QRCodeDecodeError`: QR code reading errors
-  - `INVALID_IMAGE`, `NO_QR_FOUND`, `FINDER_PATTERN_NOT_FOUND`, `FORMAT_INFO_ERROR`, `DATA_DECODE_ERROR`
-- `CameraAccessError`: Camera access errors
-  - `PERMISSION_DENIED`, `DEVICE_NOT_FOUND`, `NOT_SUPPORTED`, `HARDWARE_ERROR`
 - `EnvironmentError`: Environment-related errors
   - `UNSUPPORTED_BROWSER`, `MISSING_DEPENDENCIES`, `SECURITY_RESTRICTION`
 - `ValidationError`: Input validation errors
@@ -548,7 +495,6 @@ js-qrcode/
 │   ├── errors.js                 # Error handling system
 │   ├── error-router.js           # Error classification and routing
 │   ├── generator.js              # QR code generation
-│   ├── decoder.js                # QR code reading
 │   └── renderers/                # Output format renderers
 ├── examples/                     # Usage examples
 │   └── error-handling-examples.js
@@ -593,8 +539,8 @@ const stats = QRCode.getErrorStats();
 
 ### Performance Considerations
 
-- **Basic methods** (`generate`, `decode`): Minimal overhead, same performance as v1.x
-- **Analytics methods** (`generateWithAnalytics`, `decodeWithAnalytics`): Small overhead for context building and error tracking
+- **Basic methods** (`generate`): Minimal overhead, same performance as v1.x
+- **Analytics methods** (`generateWithAnalytics`): Small overhead for context building and error tracking
 - **Error handlers**: Only executed when errors occur
 - **Memory usage**: Error history limited to 1000 entries with automatic cleanup
 
@@ -642,7 +588,7 @@ MIT License - See [LICENSE](./LICENSE) file for details.
 - 🧪 Added comprehensive test coverage for error handling
 
 ### v1.x - Core Functionality
-- Initial QR code generation and reading
+- Initial QR code generation
 - Workers environment optimization
-- SVG and PNG output formats
+- SVG output format
 - Basic error handling

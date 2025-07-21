@@ -148,15 +148,7 @@
             border-radius: 5px;
             margin: 20px 0;
         }
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
         @media (max-width: 768px) {
-            .two-column {
-                grid-template-columns: 1fr;
-            }
             .options-grid {
                 grid-template-columns: 1fr;
             }
@@ -188,93 +180,64 @@
             <strong>✅ 互換性:</strong> L・M・Qレベルは、すべてのQRコードリーダーで読み取り可能です。
         </div>
 
-        <div class="two-column">
-            <!-- QRコード生成セクション -->
-            <div class="section">
-                <h2>📝 QRコード生成</h2>
-                
+        <!-- QRコード生成セクション -->
+        <div class="section">
+            <h2>📝 QRコード生成</h2>
+            
+            <div class="form-group">
+                <label for="inputText">生成するテキスト:</label>
+                <textarea id="inputText" rows="4" placeholder="QRコードに変換したいテキストを入力してください...">Hello, World!</textarea>
+            </div>
+
+            <div class="options-grid">
                 <div class="form-group">
-                    <label for="inputText">生成するテキスト:</label>
-                    <textarea id="inputText" rows="4" placeholder="QRコードに変換したいテキストを入力してください...">Hello, World!</textarea>
+                    <label for="errorCorrectionLevel">エラー訂正レベル:</label>
+                    <select id="errorCorrectionLevel">
+                        <option value="L">L (約7%)</option>
+                        <option value="M" selected>M (約15%)</option>
+                        <option value="Q">Q (約25%)</option>
+                        <option value="H" disabled>H (約30%) - 開発中</option>
+                    </select>
                 </div>
 
-                <div class="options-grid">
-                    <div class="form-group">
-                        <label for="errorCorrectionLevel">エラー訂正レベル:</label>
-                        <select id="errorCorrectionLevel">
-                            <option value="L">L (約7%)</option>
-                            <option value="M" selected>M (約15%)</option>
-                            <option value="Q">Q (約25%)</option>
-                            <option value="H" disabled>H (約30%) - 開発中</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="margin">マージン:</label>
-                        <input type="number" id="margin" value="4" min="0" max="10">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="moduleSize">モジュールサイズ:</label>
-                        <input type="number" id="moduleSize" value="4" min="1" max="20">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="color">色:</label>
-                        <input type="color" id="color" value="#000000">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="forceMask">マスクパターン強制指定（互換性用）:</label>
-                        <select id="forceMask">
-                            <option value="">自動選択（推奨）</option>
-                            <option value="0">マスク0</option>
-                            <option value="1">マスク1</option>
-                            <option value="2">マスク2</option>
-                            <option value="3">マスク3</option>
-                            <option value="4">マスク4</option>
-                            <option value="5">マスク5</option>
-                            <option value="6">マスク6（Qレベル互換性）</option>
-                            <option value="7">マスク7（Mレベル互換性）</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="margin">マージン:</label>
+                    <input type="number" id="margin" value="4" min="0" max="10">
                 </div>
 
-                <button onclick="generateQR()">QRコードを生成</button>
-                <button onclick="downloadSVG()" id="downloadBtn" disabled>SVGをダウンロード</button>
+                <div class="form-group">
+                    <label for="moduleSize">モジュールサイズ:</label>
+                    <input type="number" id="moduleSize" value="4" min="1" max="20">
+                </div>
 
-                <div class="result">
-                    <div id="qrResult">
-                        <p>ここに生成されたQRコードが表示されます</p>
-                    </div>
+                <div class="form-group">
+                    <label for="color">色:</label>
+                    <input type="color" id="color" value="#000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="forceMask">マスクパターン強制指定（互換性用）:</label>
+                    <select id="forceMask">
+                        <option value="">自動選択（推奨）</option>
+                        <option value="0">マスク0</option>
+                        <option value="1">マスク1</option>
+                        <option value="2">マスク2</option>
+                        <option value="3">マスク3</option>
+                        <option value="4">マスク4</option>
+                        <option value="5">マスク5</option>
+                        <option value="6">マスク6（Qレベル互換性）</option>
+                        <option value="7">マスク7（Mレベル互換性）</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- QRコード読み取りセクション -->
-            <div class="section">
-                <h2>📷 QRコード読み取り</h2>
-                
-                <div class="form-group">
-                    <label>ファイルから読み取り:</label>
-                    <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" accept="image/*" onchange="decodeFromFile()">
-                        <label for="fileInput" class="file-input-label">
-                            📁 画像ファイルを選択
-                        </label>
-                    </div>
-                </div>
+            <button onclick="generateQR()">QRコードを生成</button>
+            <button onclick="downloadSVG()" id="downloadSVGBtn" disabled>SVGをダウンロード</button>
+            <button onclick="downloadPNG()" id="downloadPNGBtn" disabled>PNGをダウンロード</button>
 
-                <div class="scanner-section">
-                    <button onclick="startCamera()" id="startCameraBtn">📹 カメラを開始</button>
-                    <button onclick="stopCamera()" id="stopCameraBtn" disabled>⏹️ カメラを停止</button>
-                    <video id="video" style="display: none;"></video>
-                    <canvas id="canvas" style="display: none;"></canvas>
-                </div>
-
-                <div class="result">
-                    <div id="decodeResult">
-                        <p>ここに読み取り結果が表示されます</p>
-                    </div>
+            <div class="result">
+                <div id="qrResult">
+                    <p>ここに生成されたQRコードが表示されます</p>
                 </div>
             </div>
         </div>
@@ -297,9 +260,7 @@ const svg = QRCode.generate('Hello, World!', {
     color: '#000000'
 });
 
-// QRコード読み取り
-const result = await QRCode.decode(imageData);
-console.log(result.data);</code></pre>
+// 注意: このデモからQRコード読み取り機能は削除されました</code></pre>
 
             <h3>UMD（ブラウザ直接読み込み）</h3>
             <pre><code>&lt;script src="./dist/js-qrcode.js"&gt;&lt;/script&gt;
@@ -401,7 +362,8 @@ npm run dev</code></pre>
                     <p><strong>エラー訂正レベル:</strong> ${options.errorCorrectionLevel}</p>
                 `;
                 
-                document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('downloadSVGBtn').disabled = false;
+                document.getElementById('downloadPNGBtn').disabled = false;
                 
             } catch (error) {
                 console.error('ライブラリ読み込みエラー:', error);
@@ -436,32 +398,58 @@ npm run dev</code></pre>
             URL.revokeObjectURL(url);
         };
 
-        // ファイルからの読み取り（プレースホルダー）
-        window.decodeFromFile = function() {
-            const resultDiv = document.getElementById('decodeResult');
-            resultDiv.innerHTML = `
-                <div class="info">
-                    <p><strong>🔧 読み取り機能:</strong></p>
-                    <p>ライブラリの読み込みをお待ちください</p>
-                </div>
-            `;
+        // PNGダウンロード関数
+        window.downloadPNG = async function() {
+            if (!currentQRSVG) return;
+            
+            try {
+                // SVGをPNGに変換
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // SVGをData URLに変換
+                const svgBlob = new Blob([currentQRSVG], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // 背景を白で塗りつぶし
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // SVG画像を描画
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // PNGとしてダウンロード
+                    canvas.toBlob(function(blob) {
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = 'qrcode.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(downloadUrl);
+                        URL.revokeObjectURL(url);
+                    }, 'image/png');
+                };
+                
+                img.onerror = function() {
+                    console.error('PNG変換エラー: SVG画像の読み込みに失敗しました');
+                    URL.revokeObjectURL(url);
+                };
+                
+                img.src = url;
+                
+            } catch (error) {
+                console.error('PNG変換エラー:', error);
+            }
         };
 
-        // カメラ機能（プレースホルダー）
-        window.startCamera = function() {
-            const resultDiv = document.getElementById('decodeResult');
-            resultDiv.innerHTML = `
-                <div class="info">
-                    <p><strong>📹 カメラ機能:</strong></p>
-                    <p>ライブラリの読み込みをお待ちください</p>
-                    <p>カメラアクセスにHTTPSが必要です</p>
-                </div>
-            `;
-        };
-
-        window.stopCamera = function() {
-            // プレースホルダー
-        };
+        // QRコード読み取り機能はこのデモから削除されました
 
         // HTMLエスケープ関数
         function escapeHtml(text) {

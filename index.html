@@ -241,7 +241,8 @@
                 </div>
 
                 <button onclick="generateQR()">Generate QR Code</button>
-                <button onclick="downloadSVG()" id="downloadBtn" disabled>Download SVG</button>
+                <button onclick="downloadSVG()" id="downloadSVGBtn" disabled>Download SVG</button>
+                <button onclick="downloadPNG()" id="downloadPNGBtn" disabled>Download PNG</button>
 
                 <div class="result">
                     <div id="qrResult">
@@ -297,9 +298,7 @@ const svg = QRCode.generate('Hello, World!', {
     color: '#000000'
 });
 
-// QRコード読み取り
-const result = await QRCode.decode(imageData);
-console.log(result.data);</code></pre>
+// Note: QR code decoding functionality has been removed from this demo</code></pre>
 
             <h3>UMD（ブラウザ直接読み込み）</h3>
             <pre><code>&lt;script src="./dist/js-qrcode.js"&gt;&lt;/script&gt;
@@ -401,7 +400,8 @@ npm run dev</code></pre>
                     <p><strong>Error Correction Level:</strong> ${options.errorCorrectionLevel}</p>
                 `;
                 
-                document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('downloadSVGBtn').disabled = false;
+                document.getElementById('downloadPNGBtn').disabled = false;
                 
             } catch (error) {
                 console.error('Library loading error:', error);
@@ -436,32 +436,62 @@ npm run dev</code></pre>
             URL.revokeObjectURL(url);
         };
 
-        // Read from file (placeholder)
-        window.decodeFromFile = function() {
-            const resultDiv = document.getElementById('decodeResult');
-            resultDiv.innerHTML = `
-                <div class="info">
-                    <p><strong>🔧 Reading Function:</strong></p>
-                    <p>Please wait for the library to load</p>
-                </div>
-            `;
+        // PNG download function
+        window.downloadPNG = async function() {
+            if (!currentQRSVG) return;
+            
+            try {
+                // SVGをPNGに変換
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // SVGをData URLに変換
+                const svgBlob = new Blob([currentQRSVG], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // 背景を白で塗りつぶし
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // SVG画像を描画
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // PNGとしてダウンロード
+                    canvas.toBlob(function(blob) {
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = 'qrcode.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(downloadUrl);
+                        URL.revokeObjectURL(url);
+                    }, 'image/png');
+                };
+                
+                img.onerror = function() {
+                    console.error('PNG変換エラー: SVG画像の読み込みに失敗しました');
+                    URL.revokeObjectURL(url);
+                };
+                
+                img.src = url;
+                
+            } catch (error) {
+                console.error('PNG変換エラー:', error);
+            }
         };
 
-        // Camera function (placeholder)
-        window.startCamera = function() {
-            const resultDiv = document.getElementById('decodeResult');
-            resultDiv.innerHTML = `
-                <div class="info">
-                    <p><strong>📹 Camera Function:</strong></p>
-                    <p>Please wait for the library to load</p>
-                    <p>Camera access requires HTTPS</p>
-                </div>
-            `;
-        };
-
-        window.stopCamera = function() {
-            // Placeholder
-        };
+        // QR code decoding functionality has been removed from this demo
+        
+        // Removed function: decodeFromFile
+        // Removed function: startCamera
+        // Removed function: stopCamera
 
         // HTML escape function
         function escapeHtml(text) {
