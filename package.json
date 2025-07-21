@@ -23,7 +23,19 @@
     "prepare": "npm run build",
     "preversion": "npm test && npm run lint",
     "version": "npm run build && git add -A dist",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "wasm:check": "command -v emcc >/dev/null 2>&1 || (echo 'Error: Emscripten not found. Please install:' && echo 'git clone https://github.com/emscripten-core/emsdk.git' && echo 'cd emsdk && ./emsdk install latest && ./emsdk activate latest' && echo 'source ./emsdk_env.sh' && exit 1)",
+    "wasm:setup": "git clone https://github.com/emscripten-core/emsdk.git ~/emsdk || true && cd ~/emsdk && ./emsdk install latest && ./emsdk activate latest && echo 'Run: source ~/emsdk/emsdk_env.sh'",
+    "wasm:build": "npm run wasm:check && cd wasm && source ~/emsdk/emsdk_env.sh && ./build.sh",
+    "wasm:build:reed-solomon": "npm run wasm:check && cd wasm && source ~/emsdk/emsdk_env.sh && ./build.sh reed_solomon",
+    "wasm:build:masking": "npm run wasm:check && cd wasm && source ~/emsdk/emsdk_env.sh && ./build.sh masking",
+    "wasm:build:data-encoder": "npm run wasm:check && cd wasm && source ~/emsdk/emsdk_env.sh && ./build.sh data_encoder",
+    "wasm:clean": "rm -rf src/wasm/*.js src/wasm/*.d.ts",
+    "wasm:test": "npm run wasm:build && npm test -- --testPathPattern=wasm-integration",
+    "wasm:test:reed-solomon": "npm run wasm:build:reed-solomon && npm test -- --testPathPattern=wasm-integration",
+    "wasm:test:masking": "npm run wasm:build:masking && npm test -- --testPathPattern=masking-wasm-integration",
+    "wasm:test:data-encoder": "npm run wasm:build:data-encoder && npm test -- --testPathPattern=data-encoder-wasm-integration",
+    "wasm:benchmark": "npm run wasm:build && node -e \"import('./src/generator.js').then(async ({ QRCodeGenerator }) => { const testData = 'Benchmark Test Data'; const wasmGen = new QRCodeGenerator(); const jsGen = new QRCodeGenerator(undefined, undefined, { forceJS: true }); const start1 = performance.now(); await wasmGen.generate(testData); const wasmTime = performance.now() - start1; const start2 = performance.now(); await jsGen.generate(testData); const jsTime = performance.now() - start2; console.log(\\`WASM: \\${wasmTime.toFixed(2)}ms, JS: \\${jsTime.toFixed(2)}ms\\`); console.log(\\`改善率: \\${((jsTime-wasmTime)/jsTime*100).toFixed(1)}%\\`); });\""
   },
   "keywords": [
     "qrcode",
@@ -37,7 +49,14 @@
     "generator",
     "scanner",
     "decoder",
-    "pure-javascript"
+    "pure-javascript",
+    "webassembly",
+    "wasm",
+    "emscripten",
+    "performance",
+    "optimization",
+    "reed-solomon",
+    "error-correction"
   ],
   "author": "Elchika Inc.",
   "license": "MIT",

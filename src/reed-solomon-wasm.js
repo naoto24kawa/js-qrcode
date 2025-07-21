@@ -13,15 +13,30 @@ class WASMReedSolomon {
 
   addErrorCorrection(dataBytes, version, errorCorrectionLevel) {
     try {
-      // Convert JavaScript array to WASM-compatible format
+      // Convert JavaScript array to WASM VectorInt
+      const wasmVector = new this.wasmModule.VectorInt();
+      for (let i = 0; i < dataBytes.length; i++) {
+        wasmVector.push_back(dataBytes[i]);
+      }
+      
+      // Call WASM function
       const result = this.wasmErrorCorrection.addErrorCorrection(
-        dataBytes, 
+        wasmVector, 
         version, 
         errorCorrectionLevel
       );
       
       // Convert WASM result back to JavaScript array
-      return Array.from(result);
+      const jsArray = [];
+      for (let i = 0; i < result.size(); i++) {
+        jsArray.push(result.get(i));
+      }
+      
+      // Clean up WASM objects
+      wasmVector.delete();
+      result.delete();
+      
+      return jsArray;
     } catch (error) {
       console.warn('WASM Reed-Solomon failed, falling back to JavaScript:', error.message);
       // Fallback to JavaScript implementation

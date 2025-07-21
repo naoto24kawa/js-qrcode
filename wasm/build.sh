@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# Reed-Solomon WASM Build Script for Workers Environment
+# WASM Build Script for Workers Environment
 # Optimized for minimal bundle size and Workers compatibility
 
 set -e
-
-echo "Building Reed-Solomon WASM module..."
 
 # Check if emscripten is available
 if ! command -v emcc &> /dev/null; then
@@ -19,82 +17,65 @@ fi
 # Create output directory
 mkdir -p ../src/wasm
 
-# Compile Reed-Solomon module
-emcc src/reed_solomon.cpp \
-  -o ../src/wasm/reed_solomon.js \
-  -s WASM=1 \
-  -s MODULARIZE=1 \
-  -s EXPORT_NAME="'ReedSolomonModule'" \
-  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
-  -s ALLOW_MEMORY_GROWTH=1 \
-  -s INITIAL_MEMORY=1MB \
-  -s MAXIMUM_MEMORY=4MB \
-  -s NO_FILESYSTEM=1 \
-  -s NO_EXIT_RUNTIME=1 \
-  -s ENVIRONMENT='web,worker' \
-  -s SINGLE_FILE=1 \
-  -O3 \
-  -flto \
-  --bind \
-  --closure 1 \
-  -s ASSERTIONS=0 \
-  -s STACK_SIZE=64KB
+# Function to build a specific module
+build_module() {
+    local module_name=$1
+    local cpp_file=$2
+    local output_file=$3
+    local export_name=$4
+    
+    echo "Building $module_name WASM module..."
+    
+    emcc $cpp_file \
+      -o $output_file \
+      -s WASM=1 \
+      -s MODULARIZE=1 \
+      -s EXPORT_NAME="'$export_name'" \
+      -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+      -s ALLOW_MEMORY_GROWTH=1 \
+      -s INITIAL_MEMORY=1MB \
+      -s MAXIMUM_MEMORY=4MB \
+      -s NO_FILESYSTEM=1 \
+      -s NO_EXIT_RUNTIME=1 \
+      -s ENVIRONMENT='web,worker' \
+      -s SINGLE_FILE=1 \
+      -O3 \
+      -flto \
+      --bind \
+      --closure 1 \
+      -s ASSERTIONS=0 \
+      -s STACK_SIZE=64KB
+    
+    echo "$module_name WASM module built successfully!"
+    echo "Output: $output_file"
+}
 
-echo "Reed-Solomon WASM module built successfully!"
-
-# Compile Masking module
-emcc src/masking.cpp \
-  -o ../src/wasm/masking.js \
-  -s WASM=1 \
-  -s MODULARIZE=1 \
-  -s EXPORT_NAME="'MaskingModule'" \
-  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
-  -s ALLOW_MEMORY_GROWTH=1 \
-  -s INITIAL_MEMORY=1MB \
-  -s MAXIMUM_MEMORY=4MB \
-  -s NO_FILESYSTEM=1 \
-  -s NO_EXIT_RUNTIME=1 \
-  -s ENVIRONMENT='web,worker' \
-  -s SINGLE_FILE=1 \
-  -O3 \
-  -flto \
-  --bind \
-  --closure 1 \
-  -s ASSERTIONS=0 \
-  -s STACK_SIZE=64KB
-
-echo "Masking WASM module built successfully!"
-echo "Output: src/wasm/masking.js"
-
-# Compile Data Encoder module
-emcc src/data_encoder.cpp \
-  -o ../src/wasm/data_encoder.js \
-  -s WASM=1 \
-  -s MODULARIZE=1 \
-  -s EXPORT_NAME="'DataEncoderModule'" \
-  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
-  -s ALLOW_MEMORY_GROWTH=1 \
-  -s INITIAL_MEMORY=1MB \
-  -s MAXIMUM_MEMORY=4MB \
-  -s NO_FILESYSTEM=1 \
-  -s NO_EXIT_RUNTIME=1 \
-  -s ENVIRONMENT='web,worker' \
-  -s SINGLE_FILE=1 \
-  -O3 \
-  -flto \
-  --bind \
-  --closure 1 \
-  -s ASSERTIONS=0 \
-  -s STACK_SIZE=64KB
-
-echo "Data Encoder WASM module built successfully!"
-echo "Output: src/wasm/data_encoder.js"
-
-echo ""
-echo "All WASM modules built successfully!"
-echo "Reed-Solomon: $(du -h ../src/wasm/reed_solomon.js | cut -f1)"
-echo "Masking: $(du -h ../src/wasm/masking.js | cut -f1)"
-echo "Data Encoder: $(du -h ../src/wasm/data_encoder.js | cut -f1)"
+# Parse command line arguments
+if [ "$1" = "reed_solomon" ]; then
+    build_module "Reed-Solomon" "src/reed_solomon.cpp" "../src/wasm/reed_solomon.js" "ReedSolomonModule"
+elif [ "$1" = "masking" ]; then
+    build_module "Masking" "src/masking.cpp" "../src/wasm/masking.js" "MaskingModule"
+elif [ "$1" = "data_encoder" ]; then
+    build_module "Data Encoder" "src/data_encoder.cpp" "../src/wasm/data_encoder.js" "DataEncoderModule"
+else
+    # Build all modules
+    echo "Building all WASM modules..."
+    build_module "Reed-Solomon" "src/reed_solomon.cpp" "../src/wasm/reed_solomon.js" "ReedSolomonModule"
+    build_module "Masking" "src/masking.cpp" "../src/wasm/masking.js" "MaskingModule"
+    build_module "Data Encoder" "src/data_encoder.cpp" "../src/wasm/data_encoder.js" "DataEncoderModule"
+    
+    echo ""
+    echo "All WASM modules built successfully!"
+    if [ -f ../src/wasm/reed_solomon.js ]; then
+        echo "Reed-Solomon: $(du -h ../src/wasm/reed_solomon.js | cut -f1)"
+    fi
+    if [ -f ../src/wasm/masking.js ]; then
+        echo "Masking: $(du -h ../src/wasm/masking.js | cut -f1)"
+    fi
+    if [ -f ../src/wasm/data_encoder.js ]; then
+        echo "Data Encoder: $(du -h ../src/wasm/data_encoder.js | cut -f1)"
+    fi
+fi
 
 # Create type definitions for TypeScript compatibility
 cat > ../src/wasm/reed_solomon.d.ts << 'EOF'
