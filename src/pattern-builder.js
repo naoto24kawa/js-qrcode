@@ -45,20 +45,22 @@ export class QRPatternBuilder {
 
   addFormatInfo(modules, size, errorCorrectionLevel, maskPattern) {
     // 参照ライブラリの正確なパターンを直接複製
+    // フォーマット情報は15ビットで、エラー訂正レベルとマスクパターンを含む
+    // ISO/IEC 18004:2015 Section 7.9 Format information placement
     const refPatterns = {
-      'L': {
+      'L': {  // Low error correction (ECL=01)
         row8: [1,1,0,0,1,1,1,0,0,0,0,0,1,0,0,1,0,1,1,1,1],
         col8: [1,1,1,1,0,1,1,0,0,0,0,0,0,1,0,1,1,0,0,1,1]
       },
-      'M': {
+      'M': {  // Medium error correction (ECL=00)
         row8: [1,0,0,0,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1],
         col8: [1,0,0,1,1,1,1,1,1,0,0,0,0,1,1,0,1,0,0,0,1]
       },
-      'Q': {
+      'Q': {  // Quartile error correction (ECL=11)
         row8: [0,1,1,1,0,1,1,0,0,1,0,1,0,0,0,0,0,0,1,1,0],
         col8: [0,1,1,0,0,0,1,0,0,0,1,1,0,1,0,1,0,1,1,1,0]
       },
-      'H': {
+      'H': {  // High error correction (ECL=10)
         row8: [0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,1,0,1],
         col8: [1,0,1,0,1,0,1,1,0,1,1,0,1,1,0,1,0,0,0,0,0]
       }
@@ -66,12 +68,14 @@ export class QRPatternBuilder {
     
     const pattern = refPatterns[errorCorrectionLevel];
     if (pattern) {
-      // 行8の配置
+      // 行8への配置（水平方向のフォーマット情報）
+      // 左上エリア(0-8)と右上エリア(size-8 to size-1)に配置
       for (let c = 0; c < 21; c++) {
         modules[8][c] = pattern.row8[c] === 1;
       }
       
-      // 列8の配置
+      // 列8への配置（垂直方向のフォーマット情報）
+      // 左上エリア(0-8)と左下エリア(size-7 to size-1)に配置
       for (let r = 0; r < 21; r++) {
         modules[r][8] = pattern.col8[r] === 1;
       }

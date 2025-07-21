@@ -53,12 +53,13 @@ export class QRMasking {
     }
 
     // 参照ライブラリ互換性のためのマスク選択
+    // 特定の環境での一貫した出力を保証するため
     if (options.legacyCompatibility !== false) {
       const compatibleMasks = {
-        'L': 4,
-        'M': 4, 
-        'Q': 3,
-        'H': 1  // Hレベルは一般的にマスク1が互換性が高い
+        'L': 4,  // Low error correction: mask pattern 4
+        'M': 4,  // Medium error correction: mask pattern 4
+        'Q': 3,  // Quartile error correction: mask pattern 3
+        'H': 1   // High error correction: mask pattern 1 (high compatibility)
       };
       
       if (compatibleMasks[options.errorCorrectionLevel]) {
@@ -108,6 +109,8 @@ export class QRMasking {
 
   /**
    * Rule 1: 5 or more consecutive modules of same color
+   * Penalty: 3 + (consecutive count - 5) points per occurrence
+   * Reference: ISO/IEC 18004:2015 Section 7.8.3.1
    */
   evaluateRule1(modules, size) {
     let penalty = 0;
@@ -159,6 +162,8 @@ export class QRMasking {
 
   /**
    * Rule 2: 2x2 blocks of same color
+   * Penalty: 3 points per 2x2 block of same color
+   * Reference: ISO/IEC 18004:2015 Section 7.8.3.2
    */
   evaluateRule2(modules, size) {
     let penalty = 0;
@@ -179,6 +184,9 @@ export class QRMasking {
 
   /**
    * Rule 3: Patterns that look like finder patterns
+   * Penalty: 40 points per occurrence of patterns like finder patterns
+   * Patterns: 1011101 or 0100010 with 4 light modules padding
+   * Reference: ISO/IEC 18004:2015 Section 7.8.3.3
    */
   evaluateRule3(modules, size) {
     let penalty = 0;
@@ -220,6 +228,8 @@ export class QRMasking {
 
   /**
    * Rule 4: Balance of dark and light modules
+   * Penalty: 10 points per 5% deviation from 50% dark modules
+   * Reference: ISO/IEC 18004:2015 Section 7.8.3.4
    */
   evaluateRule4(modules, size) {
     let darkCount = 0;

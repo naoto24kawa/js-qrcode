@@ -30,6 +30,7 @@ export class QRDataEncoder {
       }
     }
     
+    // Fallback: estimate version based on data length (30 characters per version average)
     return Math.min(15, Math.ceil(length / 30));
   }
 
@@ -43,6 +44,7 @@ export class QRDataEncoder {
   }
 
   encode(data, mode, version) {
+    // Mode indicator: 4 bits identifying the encoding mode
     let bits = this.padLeft(mode.toString(2), 4);
     
     const lengthBits = this.getCharacterCountLength(mode, version);
@@ -69,7 +71,7 @@ export class QRDataEncoder {
     const bits = this.encode(data, mode, version);
     const requiredLength = this.getDataCodewordsCount(version, errorCorrectionLevel);
     
-    // Add terminator (up to 4 bits of zeros)
+    // Add terminator (up to 4 bits of zeros as per QR specification)
     let paddedBits = bits;
     const terminatorLength = Math.min(4, requiredLength * 8 - bits.length);
     paddedBits += '0'.repeat(terminatorLength);
@@ -134,6 +136,7 @@ export class QRDataEncoder {
     for (let i = 0; i < data.length; i += 3) {
       const group = data.slice(i, i + 3);
       const value = parseInt(group, 10);
+      // QR numeric encoding: 3 digits->10 bits, 2 digits->7 bits, 1 digit->4 bits
       const bitLength = group.length === 3 ? 10 : group.length === 2 ? 7 : 4;
       bits += this.padLeft(value.toString(2), bitLength);
     }
@@ -146,9 +149,11 @@ export class QRDataEncoder {
       if (i + 1 < data.length) {
         const val1 = ALPHANUMERIC_CHARS.indexOf(data[i]);
         const val2 = ALPHANUMERIC_CHARS.indexOf(data[i + 1]);
+        // QR alphanumeric encoding: pair of characters -> val1*45 + val2 (11 bits)
         const value = val1 * 45 + val2;
         bits += this.padLeft(value.toString(2), 11);
       } else {
+        // Single character: 6 bits
         const value = ALPHANUMERIC_CHARS.indexOf(data[i]);
         bits += this.padLeft(value.toString(2), 6);
       }

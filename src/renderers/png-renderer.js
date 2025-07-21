@@ -1,3 +1,5 @@
+import { SVGRenderer } from './svg-renderer.js';
+
 export class PNGRenderer {
   render(modules, moduleSize, settings) {
     // ブラウザ環境ではCanvas APIを使用
@@ -6,7 +8,6 @@ export class PNGRenderer {
     }
     
     // Node.js環境ではSVGベースのData URLを返す
-    const { SVGRenderer } = require('./svg-renderer.js');
     const svgRenderer = new SVGRenderer();
     const svgData = svgRenderer.render(modules, moduleSize, settings);
     const base64Svg = btoa(unescape(encodeURIComponent(svgData)));
