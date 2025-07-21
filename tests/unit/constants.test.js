@@ -10,7 +10,7 @@ import {
   CAPACITY_TABLE,
   FINDER_PATTERN,
   MASK_PATTERNS
-} from '../../src/constants.js';
+} from '../../src/constants/index.js';
 
 describe('Constants', () => {
   describe('QR_MODES', () => {

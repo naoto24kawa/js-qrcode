@@ -1,4 +1,5 @@
-import { QR_MODES, ALPHANUMERIC_CHARS } from './constants.js';
+import { QR_MODES, ALPHANUMERIC_CHARS } from './constants/index.js';
+import { getModeIndex } from './utils/mode-utils.js';
 
 export class QRModeDetector {
   detectMode(data) {
@@ -15,11 +16,6 @@ export class QRModeDetector {
   }
 
   getModeIndex(mode) {
-    switch (mode) {
-      case QR_MODES.NUMERIC: return 0;
-      case QR_MODES.ALPHANUMERIC: return 1;
-      case QR_MODES.BYTE: return 2;
-      default: return 2;
-    }
+    return getModeIndex(mode);
   }
 }

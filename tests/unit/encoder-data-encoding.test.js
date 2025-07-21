@@ -1,11 +1,11 @@
-import { QRDataEncoder } from '../../src/data-encoder.js';
+import { QRDataEncoderCore } from '../../src/data-encoder-core.js';
 import { TEST_DATA } from '../helpers/test-data.js';
 
-describe('QRDataEncoder - Data Encoding', () => {
+describe('QRDataEncoderCore - Data Encoding', () => {
   let encoder;
   
   beforeEach(() => {
-    encoder = new QRDataEncoder();
+    encoder = new QRDataEncoderCore();
   });
 
   describe('encodeNumeric', () => {

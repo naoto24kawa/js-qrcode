@@ -1,4 +1,4 @@
-import { QR_PADDING_BYTES, TERMINATOR_MAX_BITS, DATA_CODEWORDS_COUNT } from './constants.js';
+import { QR_PADDING_BYTES, TERMINATOR_MAX_BITS, DATA_CODEWORDS_COUNT } from './constants/index.js';
 
 export class QRDataPadder {
   addPadding(bits, version, errorCorrectionLevel) {

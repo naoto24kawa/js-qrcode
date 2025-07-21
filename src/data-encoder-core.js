@@ -4,7 +4,7 @@ import {
   CHARACTER_COUNT_LENGTHS,
   NUMERIC_ENCODING,
   ALPHANUMERIC_ENCODING 
-} from './constants.js';
+} from './constants/index.js';
 
 export class QRDataEncoderCore {
   constructor() {

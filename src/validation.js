@@ -1,5 +1,5 @@
 import { QRCodeGenerationError } from './errors.js';
-import { MAX_DATA_LENGTH } from './constants.js';
+import { MAX_DATA_LENGTH } from './constants/index.js';
 
 export class QRCodeValidation {
   static validateGenerateInput(data) {

@@ -1,4 +1,5 @@
-import { QR_MODES, CAPACITY_TABLE, AVERAGE_CHARS_PER_VERSION } from './constants.js';
+import { QR_MODES, CAPACITY_TABLE, AVERAGE_CHARS_PER_VERSION } from './constants/index.js';
+import { getModeIndex } from './utils/mode-utils.js';
 
 export class QRVersionSelector {
   constructor() {
@@ -24,12 +25,7 @@ export class QRVersionSelector {
   }
 
   getModeIndex(mode) {
-    switch (mode) {
-      case QR_MODES.NUMERIC: return 0;
-      case QR_MODES.ALPHANUMERIC: return 1;
-      case QR_MODES.BYTE: return 2;
-      default: return 2;
-    }
+    return getModeIndex(mode);
   }
 
   stringToUtf8Bytes(str) {

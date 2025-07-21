@@ -1,12 +1,12 @@
-import { QRDataEncoder } from '../../src/data-encoder.js';
+import { QRModeDetector } from '../../src/mode-detector.js';
 import { EXPECTED_MODES } from '../helpers/test-data.js';
 import { TestDataGenerator } from '../helpers/test-builders.js';
 
-describe('QRDataEncoder - Mode Detection', () => {
+describe('QRModeDetector - Mode Detection', () => {
   let encoder;
   
   beforeEach(() => {
-    encoder = new QRDataEncoder();
+    encoder = new QRModeDetector();
   });
 
   describe('detectMode', () => {

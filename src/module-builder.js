@@ -1,4 +1,4 @@
-import { MODULE_SIZES, MODULE_BUILDER_CONSTANTS } from './constants.js';
+import { MODULE_SIZES, MODULE_BUILDER_CONSTANTS } from './constants/index.js';
 import { QRPatternBuilder } from './pattern-builder.js';
 import { QRSpecUtils } from './qr-spec-utils.js';
 
@@ -40,37 +40,37 @@ export class QRModuleBuilder {
   }
 
   addDataBits(modules, dataBits, size, version = 1) {
-    // QR仕様に従ったデータ配置アルゴリズム
+    // Data placement algorithm according to QR specification
     // ISO/IEC 18004:2015 Section 7.7.3 Symbol character placement
     let bitIndex = 0;
-    let direction = MODULE_BUILDER_CONSTANTS.DIRECTION_UP; // -1: 上向き（下から上へ）, 1: 下向き（上から下へ）
+    let direction = MODULE_BUILDER_CONSTANTS.DIRECTION_UP; // -1: upward (bottom to top), 1: downward (top to bottom)
     
-    // 右から左へ、2列ずつペアで処理（ジグザグパターン）
+    // Process from right to left, 2 columns at a time in pairs (zigzag pattern)
     for (let col = size - 1; col > 0; col -= MODULE_BUILDER_CONSTANTS.COLUMN_STEP) {
-      // タイミングパターンの列6をスキップ（QR仕様の特別ルール）
+      // Skip timing pattern column 6 (special rule in QR specification)
       if (col === MODULE_BUILDER_CONSTANTS.TIMING_POSITION) {
         col--;
       }
       
-      // 各2列ペアで垂直方向にデータを配置
-      // 右列→左列の順で配置
+      // Place data vertically in each 2-column pair
+      // Place in order: right column → left column
       for (let i = 0; i < size; i++) {
         for (let c = 0; c < MODULE_BUILDER_CONSTANTS.COLUMN_STEP; c++) {
-          const x = col - c; // 右列（c=0）から左列（c=1）へ
-          const y = direction === MODULE_BUILDER_CONSTANTS.DIRECTION_UP ? size - 1 - i : i; // 方向に応じて座標計算
+          const x = col - c; // From right column (c=0) to left column (c=1)
+          const y = direction === MODULE_BUILDER_CONSTANTS.DIRECTION_UP ? size - 1 - i : i; // Calculate coordinates according to direction
           
           if (!this.isReservedModule(y, x, size, version)) {
             if (bitIndex < dataBits.length) {
               modules[y][x] = dataBits[bitIndex] === '1';
             } else {
-              modules[y][x] = false; // パディングビット（必要に応じて）
+              modules[y][x] = false; // Padding bits (if necessary)
             }
             bitIndex++;
           }
         }
       }
       
-      // 各2列ペア処理後、方向を反転（ジグザグパターンを実現）
+      // Reverse direction after processing each 2-column pair (to achieve zigzag pattern)
       direction = -direction;
     }
     

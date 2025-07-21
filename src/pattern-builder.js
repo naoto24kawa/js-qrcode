@@ -5,7 +5,7 @@ import {
   FORMAT_INFO_PATTERNS,
   MODULE_SIZES,
   ALIGNMENT_PATTERN_TABLE
-} from './constants.js';
+} from './constants/index.js';
 import { getFormatInfo } from './format-info.js';
 
 export class QRPatternBuilder {
@@ -68,28 +68,28 @@ export class QRPatternBuilder {
   }
 
   addFormatInfo(modules, size, errorCorrectionLevel, maskPattern) {
-    // 参照ライブラリの正確なパターンを直接複製
-    // フォーマット情報は15ビットで、エラー訂正レベルとマスクパターンを含む
+    // Direct replication of exact patterns from reference library
+    // Format information is 15 bits containing error correction level and mask pattern
     // ISO/IEC 18004:2015 Section 7.9 Format information placement
     const pattern = FORMAT_INFO_PATTERNS[errorCorrectionLevel];
     const formatInfoLength = PATTERN_BUILDER_CONSTANTS.FORMAT_INFO_LENGTH;
     const formatInfoPosition = PATTERN_BUILDER_CONSTANTS.SEPARATOR_WIDTH;
     
     if (pattern) {
-      // 行8への配置（水平方向のフォーマット情報）
-      // 左上エリア(0-8)と右上エリア(size-8 to size-1)に配置
+      // Placement on row 8 (horizontal format information)
+      // Placed in top-left area (0-8) and top-right area (size-8 to size-1)
       for (let c = 0; c < formatInfoLength; c++) {
         modules[formatInfoPosition][c] = pattern.row8[c] === 1;
       }
       
-      // 列8への配置（垂直方向のフォーマット情報）
-      // 左上エリア(0-8)と左下エリア(size-7 to size-1)に配置
+      // Placement on column 8 (vertical format information)
+      // Placed in top-left area (0-8) and bottom-left area (size-7 to size-1)
       for (let r = 0; r < formatInfoLength; r++) {
         modules[r][formatInfoPosition] = pattern.col8[r] === 1;
       }
     }
     
-    // 固定ダークモジュール（上書きされる可能性があるので最後に設定）
+    // Fixed dark module (set last as it may be overwritten)
     const fixedDarkModuleRow = size - PATTERN_BUILDER_CONSTANTS.SEPARATOR_WIDTH;
     modules[fixedDarkModuleRow][formatInfoPosition] = true;
   }
@@ -106,8 +106,8 @@ export class QRPatternBuilder {
   }
 
   placeAlignmentPattern(modules, centerRow, centerCol) {
-    // QRコード仕様: 5x5のアライメントパターン
-    // 外枠: 黒、内側1層: 白、中央: 黒
+    // QR Code specification: 5x5 alignment pattern
+    // Outer border: black, inner layer: white, center: black
     const radius = PATTERN_BUILDER_CONSTANTS.ALIGNMENT_PATTERN_RADIUS;
     
     for (let i = -radius; i <= radius; i++) {
@@ -121,9 +121,9 @@ export class QRPatternBuilder {
           const isInnerEdge = Math.abs(i) === 1 || Math.abs(j) === 1;
           
           if (isOuterEdge || isCenter) {
-            modules[row][col] = true;  // 黒
+            modules[row][col] = true;  // Black
           } else if (isInnerEdge) {
-            modules[row][col] = false; // 白
+            modules[row][col] = false; // White
           }
         }
       }

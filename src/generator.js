@@ -1,5 +1,5 @@
 import { QRCodeEncoder } from './encoder.js';
-import { DEFAULT_OPTIONS } from './constants.js';
+import { DEFAULT_OPTIONS } from './constants/index.js';
 import { SVGRenderer } from './renderers/svg-renderer.js';
 import { PNGRenderer } from './renderers/png-renderer.js';
 
