@@ -12,7 +12,7 @@ export class QRDataEncoderCore {
   }
 
   encode(data, mode, version) {
-    let bits = this.padLeft(mode.toString(2), 4);
+    let bits = this.padBinaryString(mode.toString(2), 4);
     
     const lengthBits = this.getCharacterCountLength(mode, version);
     
@@ -21,7 +21,7 @@ export class QRDataEncoderCore {
       dataLength = this.stringToUtf8Bytes(data).length;
     }
     
-    bits += this.padLeft(dataLength.toString(2), lengthBits);
+    bits += this.padBinaryString(dataLength.toString(2), lengthBits);
     bits += this.encodeByMode(data, mode);
     
     return bits;
@@ -58,7 +58,7 @@ export class QRDataEncoderCore {
       const group = data.slice(i, i + 3);
       const value = parseInt(group, 10);
       const bitLength = this.getNumericBitLength(group.length);
-      bits += this.padLeft(value.toString(2), bitLength);
+      bits += this.padBinaryString(value.toString(2), bitLength);
     }
     return bits;
   }
@@ -78,10 +78,10 @@ export class QRDataEncoderCore {
         const val1 = ALPHANUMERIC_CHARS.indexOf(data[i]);
         const val2 = ALPHANUMERIC_CHARS.indexOf(data[i + 1]);
         const value = val1 * ALPHANUMERIC_ENCODING.MULTIPLIER + val2;
-        bits += this.padLeft(value.toString(2), ALPHANUMERIC_ENCODING.PAIR_BITS);
+        bits += this.padBinaryString(value.toString(2), ALPHANUMERIC_ENCODING.PAIR_BITS);
       } else {
         const value = ALPHANUMERIC_CHARS.indexOf(data[i]);
-        bits += this.padLeft(value.toString(2), ALPHANUMERIC_ENCODING.SINGLE_BITS);
+        bits += this.padBinaryString(value.toString(2), ALPHANUMERIC_ENCODING.SINGLE_BITS);
       }
     }
     return bits;
@@ -92,7 +92,7 @@ export class QRDataEncoderCore {
     let bits = '';
     
     for (const byte of utf8Bytes) {
-      bits += this.padLeft(byte.toString(2), 8);
+      bits += this.padBinaryString(byte.toString(2), 8);
     }
     return bits;
   }
@@ -101,7 +101,7 @@ export class QRDataEncoderCore {
     return Array.from(this.textEncoder.encode(str));
   }
 
-  padLeft(str, length) {
+  padBinaryString(str, length) {
     return str.padStart(length, '0');
   }
 }
