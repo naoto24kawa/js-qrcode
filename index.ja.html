@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-QRCode ローカルデモ</title>
+    <title>JS-QRCode デモ</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -173,14 +173,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔲 JS-QRCode ローカルデモ</h1>
+        <h1>🔲 JS-QRCode デモ</h1>
         
         <div class="info" style="text-align: center; margin-bottom: 30px;">
             <strong>🌐 Language:</strong> <a href="index.html" style="color: #007bff; text-decoration: none;">English</a>
         </div>
         
         <div class="server-notice">
-            <strong>⚠️ ローカル開発用:</strong> このページはローカル開発用です。ローカルサーバー（例：<code>npx serve .</code>や<code>python -m http.server</code>）で起動してください。ファイルプロトコル（file://）では正常に動作しない場合があります。
+            <strong>ℹ️ お知らせ:</strong> このデモページではQRコードの生成と読み取り機能を体験できます。最適なパフォーマンスのため、安定したインターネット接続を確保してください。
         </div>
         
         <div class="info">
@@ -308,19 +308,20 @@ console.log(result.data);</code></pre>
   document.body.innerHTML = qrCode;
 &lt;/script&gt;</code></pre>
 
-            <h3>ローカル開発サーバー起動方法</h3>
-            <pre><code># Node.js serve パッケージを使用
-npm install -g serve
-serve .
+            <h3>開発セットアップ</h3>
+            <pre><code># クローンとインストール
+git clone https://github.com/your-repo/js-qrcode.git
+cd js-qrcode
+npm install
 
-# Python 3 内蔵サーバー
-python -m http.server 8000
+# ライブラリのビルド
+npm run build
 
-# Python 2 内蔵サーバー
-python -m SimpleHTTPServer 8000
+# テスト実行
+npm test
 
-# PHP 内蔵サーバー
-php -S localhost:8000</code></pre>
+# 開発サーバー開始
+npm run dev</code></pre>
         </div>
     </div>
 
@@ -343,10 +344,10 @@ php -S localhost:8000</code></pre>
             // ローカルライブラリ読み込みの確認
             resultDiv.innerHTML = `
                 <div class="info">
-                    <p><strong>🔧 開発モード:</strong></p>
+                    <p><strong>🔧 デモモード:</strong></p>
                     <p>ライブラリの読み込みテスト中...</p>
                     <p><strong>入力テキスト:</strong> ${text}</p>
-                    <p><strong>ローカルサーバーで起動してES Modulesを有効にしてください</strong></p>
+                    <p><strong>ES Modulesを読み込み中...</strong></p>
                 </div>
                 <div style="text-align: center; margin: 20px;">
                     <div style="width: 200px; height: 200px; border: 2px dashed #ccc; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px;">
@@ -355,14 +356,14 @@ php -S localhost:8000</code></pre>
                 </div>
             `;
 
-            // 実際のライブラリが利用可能な場合の処理は、ES Module読み込み後に実行される
+            // ライブラリが利用可能な場合の処理は、ES Module読み込み後に実行される
             loadLibraryAndGenerate(text);
         };
 
-        // ライブラリの動的読み込み試行
+        // ライブラリの動的読み込み
         async function loadLibraryAndGenerate(text) {
             try {
-                // 開発環境用のパス
+                // ライブラリインポートパス
                 const { default: QRCode } = await import('./src/index.js');
                 
                 // Hレベルチェック
@@ -411,9 +412,9 @@ php -S localhost:8000</code></pre>
                         <p>${error.message}</p>
                         <p><strong>解決方法:</strong></p>
                         <ul style="text-align: left; margin: 10px 0;">
-                            <li>ローカルサーバーで起動してください（file://プロトコルではES Modulesが制限されます）</li>
-                            <li><code>npx serve .</code> または <code>python -m http.server</code> を実行</li>
-                            <li>まず <code>npm run build</code> でライブラリをビルドしてください</li>
+                            <li>ページをリフレッシュして再度お試しください</li>
+                            <li>安定したインターネット接続を確認してください</li>
+                            <li>ブラウザでJavaScriptが有効になっているか確認してください</li>
                         </ul>
                     </div>
                 `;
@@ -441,7 +442,7 @@ php -S localhost:8000</code></pre>
             resultDiv.innerHTML = `
                 <div class="info">
                     <p><strong>🔧 読み取り機能:</strong></p>
-                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
+                    <p>ライブラリの読み込みをお待ちください</p>
                 </div>
             `;
         };
@@ -452,8 +453,8 @@ php -S localhost:8000</code></pre>
             resultDiv.innerHTML = `
                 <div class="info">
                     <p><strong>📹 カメラ機能:</strong></p>
-                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
-                    <p>HTTPS環境が必要な場合があります</p>
+                    <p>ライブラリの読み込みをお待ちください</p>
+                    <p>カメラアクセスにHTTPSが必要です</p>
                 </div>
             `;
         };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-QRCode Local Demo</title>
+    <title>JS-QRCode Demo</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -173,14 +173,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔲 JS-QRCode Local Demo</h1>
+        <h1>🔲 JS-QRCode Demo</h1>
         
         <div class="info" style="text-align: center; margin-bottom: 30px;">
             <strong>🌐 Language:</strong> <a href="index.ja.html" style="color: #007bff; text-decoration: none;">日本語版 (Japanese)</a>
         </div>
         
         <div class="server-notice">
-            <strong>⚠️ Local Development:</strong> This page is for local development. Please start with a local server (e.g., <code>npx serve .</code> or <code>python -m http.server</code>). It may not work properly with the file protocol (file://).
+            <strong>ℹ️ Notice:</strong> This demo page showcases QR code generation and reading functionality. For optimal performance, ensure you have a stable internet connection.
         </div>
         
         <div class="info">
@@ -308,19 +308,20 @@ console.log(result.data);</code></pre>
   document.body.innerHTML = qrCode;
 &lt;/script&gt;</code></pre>
 
-            <h3>How to Start Local Development Server</h3>
-            <pre><code># Using Node.js serve package
-npm install -g serve
-serve .
+            <h3>Development Setup</h3>
+            <pre><code># Clone and install
+git clone https://github.com/your-repo/js-qrcode.git
+cd js-qrcode
+npm install
 
-# Python 3 built-in server
-python -m http.server 8000
+# Build the library
+npm run build
 
-# Python 2 built-in server
-python -m SimpleHTTPServer 8000
+# Run tests
+npm test
 
-# PHP built-in server
-php -S localhost:8000</code></pre>
+# Start development server
+npm run dev</code></pre>
         </div>
     </div>
 
@@ -343,10 +344,10 @@ php -S localhost:8000</code></pre>
             // Verify local library loading
             resultDiv.innerHTML = `
                 <div class="info">
-                    <p><strong>🔧 Development Mode:</strong></p>
+                    <p><strong>🔧 Demo Mode:</strong></p>
                     <p>Testing library loading...</p>
                     <p><strong>Input Text:</strong> ${text}</p>
-                    <p><strong>Please start with a local server and enable ES Modules</strong></p>
+                    <p><strong>Loading ES Modules...</strong></p>
                 </div>
                 <div style="text-align: center; margin: 20px;">
                     <div style="width: 200px; height: 200px; border: 2px dashed #ccc; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px;">
@@ -355,14 +356,14 @@ php -S localhost:8000</code></pre>
                 </div>
             `;
 
-            // Processing when the actual library is available is executed after ES Module loading
+            // Processing when the library is available is executed after ES Module loading
             loadLibraryAndGenerate(text);
         };
 
-        // Attempt to dynamically load the library
+        // Dynamically load the library
         async function loadLibraryAndGenerate(text) {
             try {
-                // Path for development environment
+                // Library import path
                 const { default: QRCode } = await import('./src/index.js');
                 
                 // H level check
@@ -411,9 +412,9 @@ php -S localhost:8000</code></pre>
                         <p>${error.message}</p>
                         <p><strong>Solution:</strong></p>
                         <ul style="text-align: left; margin: 10px 0;">
-                            <li>Please start with a local server (ES Modules are restricted with file:// protocol)</li>
-                            <li>Run <code>npx serve .</code> or <code>python -m http.server</code></li>
-                            <li>First run <code>npm run build</code> to build the library</li>
+                            <li>Please refresh the page and try again</li>
+                            <li>Ensure you have a stable internet connection</li>
+                            <li>Check if JavaScript is enabled in your browser</li>
                         </ul>
                     </div>
                 `;
@@ -441,7 +442,7 @@ php -S localhost:8000</code></pre>
             resultDiv.innerHTML = `
                 <div class="info">
                     <p><strong>🔧 Reading Function:</strong></p>
-                    <p>Please start with a local server and load the library</p>
+                    <p>Please wait for the library to load</p>
                 </div>
             `;
         };
@@ -452,8 +453,8 @@ php -S localhost:8000</code></pre>
             resultDiv.innerHTML = `
                 <div class="info">
                     <p><strong>📹 Camera Function:</strong></p>
-                    <p>Please start with a local server and load the library</p>
-                    <p>HTTPS environment may be required</p>
+                    <p>Please wait for the library to load</p>
+                    <p>Camera access requires HTTPS</p>
                 </div>
             `;
         };
