@@ -1,4 +1,4 @@
-import { QRDataEncoder } from './data-encoder.js';
+import { QRDataEncoder, createQRDataEncoder } from './data-encoder-wasm.js';
 import { QRModuleBuilder } from './module-builder.js';
 import { QRErrorCorrection, createQRErrorCorrection } from './reed-solomon-wasm.js';
 import { QRMasking, createQRMasking } from './masking-wasm.js';
@@ -6,18 +6,18 @@ import { MODULE_SIZES } from './constants.js';
 
 export class QRCodeEncoder {
   constructor(options = {}) {
-    this.dataEncoder = new QRDataEncoder();
+    this.dataEncoder = createQRDataEncoder(options.forceJS);
     this.moduleBuilder = new QRModuleBuilder();
     this.errorCorrection = createQRErrorCorrection(options.forceJS);
     this.masking = createQRMasking(options.forceJS);
   }
   
   async encode(data, errorCorrectionLevel = 'M', options = {}) {
-    const mode = this.dataEncoder.detectMode(data);
-    const version = this.dataEncoder.determineVersion(data, mode, errorCorrectionLevel);
+    const mode = await this.dataEncoder.detectMode(data);
+    const version = await this.dataEncoder.determineVersion(data, mode, errorCorrectionLevel);
     
-    // 1. Encode data to bytes
-    const dataBytes = this.dataEncoder.encodeToBytes(data, mode, version, errorCorrectionLevel);
+    // 1. Encode data to bytes - may use WASM if available
+    const dataBytes = await this.dataEncoder.encodeToBytes(data, mode, version, errorCorrectionLevel);
     
     // 2. Add error correction (may use WASM if available)
     const codewords = await this.errorCorrection.addErrorCorrection(dataBytes, version, errorCorrectionLevel);

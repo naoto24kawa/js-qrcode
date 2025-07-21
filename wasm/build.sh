@@ -66,10 +66,35 @@ emcc src/masking.cpp \
 echo "Masking WASM module built successfully!"
 echo "Output: src/wasm/masking.js"
 
+# Compile Data Encoder module
+emcc src/data_encoder.cpp \
+  -o ../src/wasm/data_encoder.js \
+  -s WASM=1 \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME="'DataEncoderModule'" \
+  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+  -s ALLOW_MEMORY_GROWTH=1 \
+  -s INITIAL_MEMORY=1MB \
+  -s MAXIMUM_MEMORY=4MB \
+  -s NO_FILESYSTEM=1 \
+  -s NO_EXIT_RUNTIME=1 \
+  -s ENVIRONMENT='web,worker' \
+  -s SINGLE_FILE=1 \
+  -O3 \
+  -flto \
+  --bind \
+  --closure 1 \
+  -s ASSERTIONS=0 \
+  -s STACK_SIZE=64KB
+
+echo "Data Encoder WASM module built successfully!"
+echo "Output: src/wasm/data_encoder.js"
+
 echo ""
 echo "All WASM modules built successfully!"
 echo "Reed-Solomon: $(du -h ../src/wasm/reed_solomon.js | cut -f1)"
 echo "Masking: $(du -h ../src/wasm/masking.js | cut -f1)"
+echo "Data Encoder: $(du -h ../src/wasm/data_encoder.js | cut -f1)"
 
 # Create type definitions for TypeScript compatibility
 cat > ../src/wasm/reed_solomon.d.ts << 'EOF'
@@ -111,6 +136,32 @@ declare module 'masking-wasm' {
 }
 EOF
 
+cat > ../src/wasm/data_encoder.d.ts << 'EOF'
+declare module 'data-encoder-wasm' {
+  export interface QRDataEncoderWASM {
+    detectMode(data: string): number;
+    determineVersion(data: string, mode: number, errorCorrectionLevel: string): number;
+    encode(data: string, mode: number, version: number): string;
+    encodeToBytes(data: string, mode: number, version: number, errorCorrectionLevel: string): number[];
+    getModeIndex(mode: number): number;
+    isAlphanumeric(data: string): boolean;
+    getUtf8Bytes(data: string): number[];
+  }
+
+  export interface DataEncoderModule {
+    QRDataEncoderWASM: {
+      new(): QRDataEncoderWASM;
+    };
+    QR_MODE_NUMERIC: number;
+    QR_MODE_ALPHANUMERIC: number;
+    QR_MODE_BYTE: number;
+  }
+
+  export default function createModule(): Promise<DataEncoderModule>;
+}
+EOF
+
 echo "TypeScript definitions created:"
 echo "  - src/wasm/reed_solomon.d.ts"
 echo "  - src/wasm/masking.d.ts"
+echo "  - src/wasm/data_encoder.d.ts"
