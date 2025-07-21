@@ -1,7 +1,7 @@
 import { QRDataEncoder } from './data-encoder.js';
 import { QRModuleBuilder } from './module-builder.js';
 import { QRErrorCorrection, createQRErrorCorrection } from './reed-solomon-wasm.js';
-import { QRMasking } from './masking.js';
+import { QRMasking, createQRMasking } from './masking-wasm.js';
 import { MODULE_SIZES } from './constants.js';
 
 export class QRCodeEncoder {
@@ -9,7 +9,7 @@ export class QRCodeEncoder {
     this.dataEncoder = new QRDataEncoder();
     this.moduleBuilder = new QRModuleBuilder();
     this.errorCorrection = createQRErrorCorrection(options.forceJS);
-    this.masking = new QRMasking();
+    this.masking = createQRMasking(options.forceJS);
   }
   
   async encode(data, errorCorrectionLevel = 'M', options = {}) {
@@ -29,12 +29,12 @@ export class QRCodeEncoder {
     const baseModules = this.moduleBuilder.generateModules(dataBits, version, errorCorrectionLevel);
     const size = MODULE_SIZES.BASE_SIZE + (version - 1) * MODULE_SIZES.VERSION_INCREMENT;
     
-    // 5. Find best mask pattern (or use forced mask)
+    // 5. Find best mask pattern (or use forced mask) - may use WASM if available
     const maskingOptions = { ...options, errorCorrectionLevel };
-    const bestMask = this.masking.findBestMask(baseModules, size, maskingOptions);
+    const bestMask = await this.masking.findBestMask(baseModules, size, maskingOptions);
     
-    // 6. Apply mask
-    const maskedModules = this.masking.applyMask(baseModules, bestMask, size);
+    // 6. Apply mask - may use WASM if available
+    const maskedModules = await this.masking.applyMask(baseModules, bestMask, size);
     
     // 7. Update format information with correct mask pattern
     const finalModules = this.moduleBuilder.addFormatInfoWithMask(maskedModules, size, errorCorrectionLevel, bestMask);
