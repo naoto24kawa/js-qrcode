@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS-QRCode Local Demo</title>
+    <title>JS-QRCode ローカルデモ</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -173,107 +173,107 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔲 JS-QRCode Local Demo</h1>
+        <h1>🔲 JS-QRCode ローカルデモ</h1>
         
         <div class="info" style="text-align: center; margin-bottom: 30px;">
-            <strong>🌐 Language:</strong> <a href="index.ja.html" style="color: #007bff; text-decoration: none;">日本語版 (Japanese)</a>
+            <strong>🌐 Language:</strong> <a href="index.html" style="color: #007bff; text-decoration: none;">English</a>
         </div>
         
         <div class="server-notice">
-            <strong>⚠️ Local Development:</strong> This page is for local development. Please start with a local server (e.g., <code>npx serve .</code> or <code>python -m http.server</code>). It may not work properly with the file protocol (file://).
+            <strong>⚠️ ローカル開発用:</strong> このページはローカル開発用です。ローカルサーバー（例：<code>npx serve .</code>や<code>python -m http.server</code>）で起動してください。ファイルプロトコル（file://）では正常に動作しない場合があります。
         </div>
         
         <div class="info">
-            <strong>ℹ️ Information:</strong> This demo page allows you to test the functionality of a QR code library implemented in pure JavaScript. It is optimized for use in Workers environments and SSR.<br>
-            <strong>✅ Compatibility:</strong> L, M, and Q levels are readable by all QR code readers.
+            <strong>ℹ️ 情報:</strong> このデモページでは、純粋なJavaScriptで実装されたQRコードライブラリの機能を試すことができます。Workers環境やSSRでの使用に最適化されています。<br>
+            <strong>✅ 互換性:</strong> L・M・Qレベルは、すべてのQRコードリーダーで読み取り可能です。
         </div>
 
         <div class="two-column">
             <!-- QRコード生成セクション -->
             <div class="section">
-                <h2>📝 QR Code Generation</h2>
+                <h2>📝 QRコード生成</h2>
                 
                 <div class="form-group">
-                    <label for="inputText">Text to Generate:</label>
-                    <textarea id="inputText" rows="4" placeholder="Enter the text you want to convert to a QR code...">Hello, World!</textarea>
+                    <label for="inputText">生成するテキスト:</label>
+                    <textarea id="inputText" rows="4" placeholder="QRコードに変換したいテキストを入力してください...">Hello, World!</textarea>
                 </div>
 
                 <div class="options-grid">
                     <div class="form-group">
-                        <label for="errorCorrectionLevel">Error Correction Level:</label>
+                        <label for="errorCorrectionLevel">エラー訂正レベル:</label>
                         <select id="errorCorrectionLevel">
-                            <option value="L">L (~7%)</option>
-                            <option value="M" selected>M (~15%)</option>
-                            <option value="Q">Q (~25%)</option>
-                            <option value="H" disabled>H (~30%) - In Development</option>
+                            <option value="L">L (約7%)</option>
+                            <option value="M" selected>M (約15%)</option>
+                            <option value="Q">Q (約25%)</option>
+                            <option value="H" disabled>H (約30%) - 開発中</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="margin">Margin:</label>
+                        <label for="margin">マージン:</label>
                         <input type="number" id="margin" value="4" min="0" max="10">
                     </div>
 
                     <div class="form-group">
-                        <label for="moduleSize">Module Size:</label>
+                        <label for="moduleSize">モジュールサイズ:</label>
                         <input type="number" id="moduleSize" value="4" min="1" max="20">
                     </div>
 
                     <div class="form-group">
-                        <label for="color">Color:</label>
+                        <label for="color">色:</label>
                         <input type="color" id="color" value="#000000">
                     </div>
 
                     <div class="form-group">
-                        <label for="forceMask">Force Mask Pattern (for compatibility):</label>
+                        <label for="forceMask">マスクパターン強制指定（互換性用）:</label>
                         <select id="forceMask">
-                            <option value="">Auto Selection (Recommended)</option>
-                            <option value="0">Mask 0</option>
-                            <option value="1">Mask 1</option>
-                            <option value="2">Mask 2</option>
-                            <option value="3">Mask 3</option>
-                            <option value="4">Mask 4</option>
-                            <option value="5">Mask 5</option>
-                            <option value="6">Mask 6 (Q Level Compatibility)</option>
-                            <option value="7">Mask 7 (M Level Compatibility)</option>
+                            <option value="">自動選択（推奨）</option>
+                            <option value="0">マスク0</option>
+                            <option value="1">マスク1</option>
+                            <option value="2">マスク2</option>
+                            <option value="3">マスク3</option>
+                            <option value="4">マスク4</option>
+                            <option value="5">マスク5</option>
+                            <option value="6">マスク6（Qレベル互換性）</option>
+                            <option value="7">マスク7（Mレベル互換性）</option>
                         </select>
                     </div>
                 </div>
 
-                <button onclick="generateQR()">Generate QR Code</button>
-                <button onclick="downloadSVG()" id="downloadBtn" disabled>Download SVG</button>
+                <button onclick="generateQR()">QRコードを生成</button>
+                <button onclick="downloadSVG()" id="downloadBtn" disabled>SVGをダウンロード</button>
 
                 <div class="result">
                     <div id="qrResult">
-                        <p>Generated QR code will be displayed here</p>
+                        <p>ここに生成されたQRコードが表示されます</p>
                     </div>
                 </div>
             </div>
 
             <!-- QRコード読み取りセクション -->
             <div class="section">
-                <h2>📷 QR Code Reading</h2>
+                <h2>📷 QRコード読み取り</h2>
                 
                 <div class="form-group">
-                    <label>Read from File:</label>
+                    <label>ファイルから読み取り:</label>
                     <div class="file-input-wrapper">
                         <input type="file" id="fileInput" accept="image/*" onchange="decodeFromFile()">
                         <label for="fileInput" class="file-input-label">
-                            📁 Select Image File
+                            📁 画像ファイルを選択
                         </label>
                     </div>
                 </div>
 
                 <div class="scanner-section">
-                    <button onclick="startCamera()" id="startCameraBtn">📹 Start Camera</button>
-                    <button onclick="stopCamera()" id="stopCameraBtn" disabled>⏹️ Stop Camera</button>
+                    <button onclick="startCamera()" id="startCameraBtn">📹 カメラを開始</button>
+                    <button onclick="stopCamera()" id="stopCameraBtn" disabled>⏹️ カメラを停止</button>
                     <video id="video" style="display: none;"></video>
                     <canvas id="canvas" style="display: none;"></canvas>
                 </div>
 
                 <div class="result">
                     <div id="decodeResult">
-                        <p>Reading results will be displayed here</p>
+                        <p>ここに読み取り結果が表示されます</p>
                     </div>
                 </div>
             </div>
@@ -281,7 +281,7 @@
 
         <!-- API使用例セクション -->
         <div class="section">
-            <h2>💻 API Usage Examples</h2>
+            <h2>💻 API使用例</h2>
             <h3>ES Modules (推奨)</h3>
             <pre><code>// ローカル開発
 import QRCode from './src/index.js';
@@ -308,68 +308,68 @@ console.log(result.data);</code></pre>
   document.body.innerHTML = qrCode;
 &lt;/script&gt;</code></pre>
 
-            <h3>How to Start Local Development Server</h3>
-            <pre><code># Using Node.js serve package
+            <h3>ローカル開発サーバー起動方法</h3>
+            <pre><code># Node.js serve パッケージを使用
 npm install -g serve
 serve .
 
-# Python 3 built-in server
+# Python 3 内蔵サーバー
 python -m http.server 8000
 
-# Python 2 built-in server
+# Python 2 内蔵サーバー
 python -m SimpleHTTPServer 8000
 
-# PHP built-in server
+# PHP 内蔵サーバー
 php -S localhost:8000</code></pre>
         </div>
     </div>
 
     <script>
-        // Simple QR code generation function (for development)
+        // 簡易的なQRコード生成機能（開発用）
         let currentQRSVG = null;
         let stream = null;
         let scanner = null;
 
-        // QR code generation function (fallback implementation)
+        // QRコード生成関数（フォールバック実装）
         window.generateQR = function() {
             const text = document.getElementById('inputText').value;
             const resultDiv = document.getElementById('qrResult');
             
             if (!text.trim()) {
-                resultDiv.innerHTML = '<div class="error">Please enter text</div>';
+                resultDiv.innerHTML = '<div class="error">テキストを入力してください</div>';
                 return;
             }
 
-            // Verify local library loading
+            // ローカルライブラリ読み込みの確認
             resultDiv.innerHTML = `
                 <div class="info">
-                    <p><strong>🔧 Development Mode:</strong></p>
-                    <p>Testing library loading...</p>
-                    <p><strong>Input Text:</strong> ${text}</p>
-                    <p><strong>Please start with a local server and enable ES Modules</strong></p>
+                    <p><strong>🔧 開発モード:</strong></p>
+                    <p>ライブラリの読み込みテスト中...</p>
+                    <p><strong>入力テキスト:</strong> ${text}</p>
+                    <p><strong>ローカルサーバーで起動してES Modulesを有効にしてください</strong></p>
                 </div>
                 <div style="text-align: center; margin: 20px;">
                     <div style="width: 200px; height: 200px; border: 2px dashed #ccc; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px;">
-                        <span style="color: #666;">QR Code<br/>Placeholder</span>
+                        <span style="color: #666;">QRコード<br/>プレースホルダー</span>
                     </div>
                 </div>
             `;
 
-            // Processing when the actual library is available is executed after ES Module loading
+            // 実際のライブラリが利用可能な場合の処理は、ES Module読み込み後に実行される
             loadLibraryAndGenerate(text);
         };
 
-        // Attempt to dynamically load the library
+        // ライブラリの動的読み込み試行
         async function loadLibraryAndGenerate(text) {
             try {
-                // Path for development environment
+                // 開発環境用のパス
                 const { default: QRCode } = await import('./src/index.js');
                 
-                // H level check
+                // Hレベルチェック
                 const errorCorrectionLevel = document.getElementById('errorCorrectionLevel').value;
                 if (errorCorrectionLevel === 'H') {
                     const resultDiv = document.getElementById('qrResult');
-                    resultDiv.innerHTML = '<div class="error">H level is currently under development. Please use L, M, or Q levels.</div>';
+                    resultDiv.innerHTML = '<div class="error">Hレベルは現在開発中です。L・M・Qレベルをご使用ください。</div>';
                     return;
                 }
                 
@@ -393,34 +393,34 @@ php -S localhost:8000</code></pre>
                 
                 const resultDiv = document.getElementById('qrResult');
                 resultDiv.innerHTML = `
-                    <div class="success">QR code generated successfully</div>
+                    <div class="success">QRコードが正常に生成されました</div>
                     <div class="qr-output">${qrSvg}</div>
-                    <p><strong>Input Text:</strong> ${text}</p>
-                    <p><strong>Character Count:</strong> ${text.length}</p>
-                    <p><strong>Error Correction Level:</strong> ${options.errorCorrectionLevel}</p>
+                    <p><strong>入力テキスト:</strong> ${text}</p>
+                    <p><strong>文字数:</strong> ${text.length}</p>
+                    <p><strong>エラー訂正レベル:</strong> ${options.errorCorrectionLevel}</p>
                 `;
                 
                 document.getElementById('downloadBtn').disabled = false;
                 
             } catch (error) {
-                console.error('Library loading error:', error);
+                console.error('ライブラリ読み込みエラー:', error);
                 const resultDiv = document.getElementById('qrResult');
                 resultDiv.innerHTML = `
                     <div class="error">
-                        <p><strong>Library Loading Error:</strong></p>
+                        <p><strong>ライブラリ読み込みエラー:</strong></p>
                         <p>${error.message}</p>
-                        <p><strong>Solution:</strong></p>
+                        <p><strong>解決方法:</strong></p>
                         <ul style="text-align: left; margin: 10px 0;">
-                            <li>Please start with a local server (ES Modules are restricted with file:// protocol)</li>
-                            <li>Run <code>npx serve .</code> or <code>python -m http.server</code></li>
-                            <li>First run <code>npm run build</code> to build the library</li>
+                            <li>ローカルサーバーで起動してください（file://プロトコルではES Modulesが制限されます）</li>
+                            <li><code>npx serve .</code> または <code>python -m http.server</code> を実行</li>
+                            <li>まず <code>npm run build</code> でライブラリをビルドしてください</li>
                         </ul>
                     </div>
                 `;
             }
         }
 
-        // SVG download function
+        // SVGダウンロード関数
         window.downloadSVG = function() {
             if (!currentQRSVG) return;
             
@@ -435,34 +435,34 @@ php -S localhost:8000</code></pre>
             URL.revokeObjectURL(url);
         };
 
-        // Read from file (placeholder)
+        // ファイルからの読み取り（プレースホルダー）
         window.decodeFromFile = function() {
             const resultDiv = document.getElementById('decodeResult');
             resultDiv.innerHTML = `
                 <div class="info">
-                    <p><strong>🔧 Reading Function:</strong></p>
-                    <p>Please start with a local server and load the library</p>
+                    <p><strong>🔧 読み取り機能:</strong></p>
+                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
                 </div>
             `;
         };
 
-        // Camera function (placeholder)
+        // カメラ機能（プレースホルダー）
         window.startCamera = function() {
             const resultDiv = document.getElementById('decodeResult');
             resultDiv.innerHTML = `
                 <div class="info">
-                    <p><strong>📹 Camera Function:</strong></p>
-                    <p>Please start with a local server and load the library</p>
-                    <p>HTTPS environment may be required</p>
+                    <p><strong>📹 カメラ機能:</strong></p>
+                    <p>ローカルサーバーで起動してライブラリを読み込んでください</p>
+                    <p>HTTPS環境が必要な場合があります</p>
                 </div>
             `;
         };
 
         window.stopCamera = function() {
-            // Placeholder
+            // プレースホルダー
         };
 
-        // HTML escape function
+        // HTMLエスケープ関数
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
